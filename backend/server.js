@@ -1,8 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./dbConnection');
-const routes = require('./routes'); // Import the routes file
-const path = require('path'); // Import the path module
+const routes = require('./routes'); 
+const path = require('path');
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
