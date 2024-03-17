@@ -21,7 +21,17 @@ async function fetchNearbyPlaces(apiKey) {
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': ['places.displayName']
+      'X-Goog-FieldMask': [
+      'places.id',
+      'places.displayName',
+      'places.formattedAddress',
+      'places.businessStatus',
+      'places.googleMapsUri',
+      'places.internationalPhoneNumber',
+      'places.rating',
+      'places.userRatingCount',
+      'places.websiteUri'
+      ]
     }
   };
 
