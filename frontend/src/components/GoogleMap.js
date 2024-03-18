@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
 function GoogleMap({ google, width, height, searchAreas }) {
-
   const [map, setMap] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: -34.397, lng: 150.644 });
   const [mapZoom, setMapZoom] = useState(8);
+
 
   return (
     <div className=''>
@@ -16,9 +16,6 @@ function GoogleMap({ google, width, height, searchAreas }) {
         onReady={(mapProps, map) => setMap(map)}
         style={{ width: width, height: height }}
       >
-        {/* {searchAreas.map((searchArea, index) => (
-          <Marker key={index} position={searchArea.marker} />
-        ))} */}
         {map && searchAreas.map((searchArea, index) => (
           <Circle
             key={index}
@@ -38,6 +35,6 @@ function GoogleMap({ google, width, height, searchAreas }) {
 }
 
 export default GoogleApiWrapper({
-  apiKey: 'AIzaSyCub7X0l9J4rMg3QkTWRhvKjv5-hh2SfQQ', // Replace with your API key
-  libraries: ['places'], // Add any additional libraries needed
+  apiKey: 'AIzaSyCub7X0l9J4rMg3QkTWRhvKjv5-hh2SfQQ',
+  libraries: ['places'],
 })(GoogleMap);
