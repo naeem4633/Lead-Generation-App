@@ -1,25 +1,20 @@
 import React from 'react';
-import {useState, useEffect} from 'react';
-import GoogleMapComponent from './components/GoogleMap';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import Home from './pages/Home';
 
 function App() {
-  const [markers, setMarkers] = useState([]);
-  
-  const sampleMarkers = [
-    { lat: -34.397, lng: 150.744 },
-    { lat: -34.397, lng: 150.644 },
-    { lat: -34.397, lng: 150.844 },
-  ];
-
   return (
-    <div className="flex flex-row border border-black w-fit h-screen">
-      <h1 className=" text-3xl font-bold underline">
-        Hello world!
-      </h1>
-      <div className="">
-        <GoogleMapComponent width='50%' height='50%' markers={sampleMarkers}/>
+    <Router>
+      <div className="app">
+        <Header />
+        <div className="app-body">
+          <Routes>
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Router>
   );
 }
 

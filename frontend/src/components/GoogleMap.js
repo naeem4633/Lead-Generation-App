@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Map, GoogleApiWrapper, Marker } from 'google-maps-react';
+import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
-function GoogleMapComponent({ google, width, height, markers }) {
+function GoogleMap({ google, width, height, searchAreas }) {
 
   const [map, setMap] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: -34.397, lng: 150.644 });
   const [mapZoom, setMapZoom] = useState(8);
-
-  // useEffect(() => {
-  //   if (map) {
-  //     const marker = new google.maps.Marker({
-  //       position: mapCenter,
-  //       map: map,
-  //     });
-  //   }
-  // }, [map, mapCenter, google]);
 
   return (
     <div className=''>
@@ -25,8 +16,21 @@ function GoogleMapComponent({ google, width, height, markers }) {
         onReady={(mapProps, map) => setMap(map)}
         style={{ width: width, height: height }}
       >
-        {markers.map((marker, index) => (
-          <Marker key={index} position={marker} />
+        {/* {searchAreas.map((searchArea, index) => (
+          <Marker key={index} position={searchArea.marker} />
+        ))} */}
+        {map && searchAreas.map((searchArea, index) => (
+          <Circle
+            key={index}
+            radius={searchArea.radius}
+            center={searchArea.marker}
+            visible={true}
+            strokeColor="#0000FF"
+            strokeOpacity={0.5}
+            strokeWeight={2}
+            fillColor="#0000FF"
+            fillOpacity={0.25}
+          />
         ))}
       </Map>
     </div>
@@ -36,4 +40,4 @@ function GoogleMapComponent({ google, width, height, markers }) {
 export default GoogleApiWrapper({
   apiKey: 'AIzaSyCub7X0l9J4rMg3QkTWRhvKjv5-hh2SfQQ', // Replace with your API key
   libraries: ['places'], // Add any additional libraries needed
-})(GoogleMapComponent);
+})(GoogleMap);
