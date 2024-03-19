@@ -1,37 +1,93 @@
 import React, { useState } from 'react';
 import GoogleMap from '../components/GoogleMap';
-import calculateNewPositionWithFactor from '../helper_functions'
+import calculateNewPositionWithFactor from '../helper_functions';
 
 function Home() {
-    const loc2 = calculateNewPositionWithFactor(-34.397, 150.544, 'south', 1000, 2)
-    const loc3 = calculateNewPositionWithFactor(loc2[0], loc2[1], 'east', 1000, 2)
-    const loc4 = calculateNewPositionWithFactor(loc3[0], loc3[1], 'north', 1000, 2)
-    const loc5 = calculateNewPositionWithFactor(loc4[0], loc4[1], 'south', 1000, 1)
-    const loc6 = calculateNewPositionWithFactor(loc5[0], loc5[1], 'west', 1000, 1)
-    const sampleSearchAreas = [
-        {marker: {lat: -34.397, lng: 150.544}, radius: 1000},
-        {marker: {lat: loc2[0], lng: loc2[1]}, radius: 1000},
-        {marker: {lat: loc3[0], lng: loc3[1]}, radius: 1000},
-        {marker: {lat: loc4[0], lng: loc4[1]}, radius: 1000},
-        {marker: {lat: loc6[0], lng: loc6[1]}, radius: 500},
-    ];
+    const [searchAreas, setSearchAreas] = useState([{ marker: { lat: -34.397, lng: 150.544 }, radius: 1000 }]);
 
-    const [searchAreas, setSearchAreas] = useState([]);
+    const handleDirectionClick = (direction) => {
+        console.log('clicked')
+        const lastSearchArea = searchAreas[searchAreas.length - 1];
+        const { lat, lng } = lastSearchArea.marker;
+        const { radius } = lastSearchArea;
+        let newMarker;
 
-    const handleSearchAreasChange = (updatedSearchAreas) => {
+        switch (direction) {
+            case 'north':
+                newMarker = calculateNewPositionWithFactor(lat, lng, 'north', radius, 2);
+                break;
+            case 'south':
+                newMarker = calculateNewPositionWithFactor(lat, lng, 'south', radius, 2);
+                break;
+            case 'east':
+                newMarker = calculateNewPositionWithFactor(lat, lng, 'east', radius, 2);
+                break;
+            case 'west':
+                newMarker = calculateNewPositionWithFactor(lat, lng, 'west', radius, 2);
+                break;
+            default:
+                newMarker = lastSearchArea.marker;
+        }
+
+        const updatedSearchAreas = [...searchAreas, { marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
         setSearchAreas(updatedSearchAreas);
+        console.log(searchAreas)
+    };
+
+    const handleAddSearchArea = () => {
+        const latitude = parseFloat(document.getElementById('latitude').value);
+        const longitude = parseFloat(document.getElementById('longitude').value);
+        const radius = parseFloat(document.getElementById('radius').value);
+
+        if (!isNaN(latitude) && !isNaN(longitude) && !isNaN(radius)) {
+            const newSearchArea = { marker: { lat: latitude, lng: longitude }, radius: radius };
+            setSearchAreas([...searchAreas, newSearchArea]);
+        }
+    };
+
+    const handleMapClick = (latitude, longitude) => {
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
     };
 
     return (
-        <div className="flex flex-row border border-black w-fit h-screen">
-            <h1 className="text-3xl font-bold underline">
-                Hello world!
-            </h1>
-            <div className="">
-                <button onClick={handleSearchAreasChange}>Set Sample Search Areas</button>
-                <GoogleMap width='50%' height='50%' searchAreas={sampleSearchAreas}/>
+        <>
+        <div className='mx-auto w-3/4 flex flex-col border border-black justify-center items-center'>
+            <div className='flex'>
+                <div className='flex flex-col justify-center items-center border border-black space-y-2'>
+                    <p>Add search area</p>
+                    <div className='flex'>  
+                        <input id="latitude" className='border border-black' type="text" placeholder="Latitude" />
+                        <input id="longitude" className='border border-black' type="text" placeholder="Longitude" />
+                        <input id="radius" className='border border-black' type="text" placeholder="Radius" />
+                    </div>
+                    <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
+                </div>
+
+                <div className='w-60 flex flex-col cursor-pointer items-center select-none'>
+                    <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('north')}>
+                        <p>North</p>
+                    </div>
+                    <div className='w-4/5 flex flex-row items-center justify-between'>
+                        <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('west')}>
+                            <p>West</p>
+                        </div>
+                        <div className='flex w-16 h-16 items-center justify-center' onClick={() => handleDirectionClick('south')}>
+                            <p>South</p>
+                        </div>
+                        <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('east')}>
+                            <p>East</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="mx-auto w-full flex flex-row border border-black">
+                <div className="w-[800px] h-[501px] border border-black">
+                    <GoogleMap width="1000px" height="500px" searchAreas={searchAreas} onMapClick={handleMapClick} />
+                </div>
             </div>
         </div>
+        </>
     );
 }
 

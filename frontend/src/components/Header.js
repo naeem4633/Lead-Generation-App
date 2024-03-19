@@ -2,9 +2,8 @@ import React from 'react';
 
 function Header() {
   return (
-    <header>
-      <h1>This is the Header</h1>
-    </header>
+    <div className='h-[8vh] border border-black flex bg-gray-600'>
+    </div>
   );
 }
 

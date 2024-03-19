@@ -1,36 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
-function GoogleMap({ google, width, height, searchAreas }) {
-  const [map, setMap] = useState(null);
-  const [mapCenter, setMapCenter] = useState({ lat: -34.397, lng: 150.644 });
-  const [mapZoom, setMapZoom] = useState(8);
-
+function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
+  const handleMapClick = (mapProps, map, clickEvent) => {
+      const { latLng } = clickEvent;
+      const latitude = latLng.lat();
+      const longitude = latLng.lng();
+      onMapClick(latitude, longitude);
+  };
 
   return (
-    <div className=''>
-      <Map
-        google={google}
-        zoom={mapZoom}
-        initialCenter={mapCenter}
-        onReady={(mapProps, map) => setMap(map)}
-        style={{ width: width, height: height }}
-      >
-        {map && searchAreas.map((searchArea, index) => (
-          <Circle
-            key={index}
-            radius={searchArea.radius}
-            center={searchArea.marker}
-            visible={true}
-            strokeColor="#0000FF"
-            strokeOpacity={0.5}
-            strokeWeight={2}
-            fillColor="#0000FF"
-            fillOpacity={0.25}
-          />
-        ))}
-      </Map>
-    </div>
+      <div className="">
+          <Map
+              google={google}
+              zoom={8}
+              style={{ width: width, height: height }}
+              onClick={handleMapClick}
+          >
+              {searchAreas.map((searchArea, index) => (
+                  <Marker key={index} position={searchArea.marker} />
+              ))}
+              {searchAreas.map((searchArea, index) => (
+                  <Circle
+                      key={index}
+                      radius={searchArea.radius}
+                      center={searchArea.marker}
+                      visible={true}
+                      strokeColor="#0000FF"
+                      strokeOpacity={0.5}
+                      strokeWeight={2}
+                      fillColor="#0000FF"
+                      fillOpacity={0.25}
+                  />
+              ))}
+          </Map>
+      </div>
   );
 }
 
