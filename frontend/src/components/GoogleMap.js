@@ -17,9 +17,9 @@ function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
               style={{ width: width, height: height }}
               onClick={handleMapClick}
           >
-              {searchAreas.map((searchArea, index) => (
+              {/* {searchAreas.map((searchArea, index) => (
                   <Marker key={index} position={searchArea.marker} />
-              ))}
+              ))} */}
               {searchAreas.map((searchArea, index) => (
                   <Circle
                       key={index}

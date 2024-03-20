@@ -16,7 +16,19 @@ const addSearchArea = async (req, res) => {
 const addMultipleSearchAreas = async (req, res) => {
     try {
         const searchAreas = req.body;
-        const addedSearchAreas = await SearchArea.insertMany(searchAreas);
+        const addedSearchAreas = [];
+
+        for (const area of searchAreas) {
+            // Check if the search area already exists
+            const existingArea = await SearchArea.findOne(area);
+            if (!existingArea) {
+                // If it doesn't exist, add it
+                const newArea = await SearchArea.create(area);
+                addedSearchAreas.push(newArea);
+            }
+            // If it exists, simply skip it
+        }
+
         res.status(201).json(addedSearchAreas);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -36,6 +48,7 @@ const addSearchAreaFromFrontend = async (req, res) => {
     }
 };
 
+
 // Add multiple search areas from frontend
 const addMultipleSearchAreasFromFrontend = async (req, res) => {
     try {
@@ -44,12 +57,33 @@ const addMultipleSearchAreasFromFrontend = async (req, res) => {
             longitude: area.marker.lng,
             radius: area.radius
         }));
-        const addedSearchAreas = await SearchArea.insertMany(searchAreas);
+        
+        // Array to store unique search areas
+        const uniqueSearchAreas = [];
+
+        // Iterate over each search area received from the frontend
+        for (const area of searchAreas) {
+            // Check if a search area with the same latitude, longitude, and radius already exists
+            const existingSearchArea = await SearchArea.findOne({
+                latitude: area.latitude,
+                longitude: area.longitude,
+                radius: area.radius
+            });
+
+            // If the search area doesn't exist, add it to the uniqueSearchAreas array
+            if (!existingSearchArea) {
+                uniqueSearchAreas.push(area);
+            }
+        }
+
+        // Insert the unique search areas into the database
+        const addedSearchAreas = await SearchArea.insertMany(uniqueSearchAreas);
         res.status(201).json(addedSearchAreas);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 // Get all search areas
 const getAllSearchAreas = async (req, res) => {
@@ -60,6 +94,48 @@ const getAllSearchAreas = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Delete all search areas
+const deleteAllSearchAreas = async (req, res) => {
+    try {
+        // Delete all search areas from the database
+        await SearchArea.deleteMany({});
+        res.json({ message: 'All search areas deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get the last 50 search areas
+const getLast50SearchAreas = async (req, res) => {
+    try {
+        const searchAreas = await SearchArea.find().sort({ _id: -1 }).limit(50);
+        res.json(searchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get the last 10 search areas
+const getLast10SearchAreas = async (req, res) => {
+    try {
+        const searchAreas = await SearchArea.find().sort({ _id: -1 }).limit(10);
+        res.json(searchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get the last 100 search areas
+const getLast100SearchAreas = async (req, res) => {
+    try {
+        const searchAreas = await SearchArea.find().sort({ _id: -1 }).limit(100);
+        res.json(searchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 // Get a search area by its ID
 const getSearchAreaById = async (req, res) => {
@@ -92,14 +168,14 @@ const updateSearchArea = async (req, res) => {
     }
 };
 
-// Delete a search area
+//delete search area
 const deleteSearchArea = async (req, res) => {
     try {
         const searchArea = await SearchArea.findById(req.params.id);
         if (!searchArea) {
             return res.status(404).json({ message: 'Search area not found' });
         }
-        await searchArea.remove();
+        await SearchArea.deleteOne({ _id: req.params.id });
         res.json({ message: 'Search area deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -115,4 +191,8 @@ module.exports = {
     deleteSearchArea,
     addSearchAreaFromFrontend,
     addMultipleSearchAreasFromFrontend,
+    getLast50SearchAreas,
+    getLast10SearchAreas,
+    getLast100SearchAreas,
+    deleteAllSearchAreas
 };

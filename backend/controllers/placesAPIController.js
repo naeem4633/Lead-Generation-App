@@ -1,7 +1,56 @@
 const axios = require('axios');
+const apiKey = process.env.API_KEY;
+
+// Function to process an array of searchArea objects and fetch nearby places for each
+async function getMultipleNearbyPlaces(req, res) {
+  try {
+    // Extract the array of searchAreas from the request body
+    const { searchAreas } = req.body;
+
+    // Array to store results
+    const nearbyPlaces = [];
+
+    // Process each search area
+    for (const area of searchAreas) {
+      const { marker, radius } = area;
+      const { lat, lng } = marker;
+
+      // Call getNearbyPlaces function for each search area
+      const nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
+      nearbyPlaces.push(nearbyPlace);
+    }
+
+    // Send the array of nearby places as the response
+    res.json(nearbyPlaces);
+  } catch (error) {
+    // Handle errors
+    console.error('Error fetching nearby places:', error);
+    res.status(500).json({ error: 'Error fetching nearby places' });
+  }
+}
+
+//function to process data and call fetchNearbyPlacesFromGoogle
+async function getNearbyPlaces(req, res) {
+  try {
+      // Extract latitude, longitude, and radius from the request body
+      const { marker, radius } = req.body;
+      const { lat, lng } = marker;
+
+      // Call fetchNearbyPlacesFromGoogle with the extracted parameters
+      const nearbyPlaces = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
+      
+      // Send the nearby places as the response
+      res.json(nearbyPlaces);
+  } catch (error) {
+      // Handle errors
+      console.error('Error fetching nearby places:', error);
+      res.status(500).json({ error: 'Error fetching nearby places' });
+  }
+}
+
 
 // Function to fetch nearby places
-async function fetchNearbyPlaces(apiKey) {
+async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius) {
   const requestData = {
     includedTypes: ["gym", "fitness_center"],
     excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", "physiotherapist", "sports_complex", "sports_club"],
@@ -9,10 +58,10 @@ async function fetchNearbyPlaces(apiKey) {
     locationRestriction: {
       circle: {
         center: { 
-          latitude: 42.3501,
-          longitude: -71.0712,  
+          latitude: latitude,
+          longitude: longitude,  
         },
-        radius: 1000,
+        radius: radius,
       },
     }
   };
@@ -44,4 +93,8 @@ async function fetchNearbyPlaces(apiKey) {
   }
 }
 
-module.exports = fetchNearbyPlaces;
+module.exports = {
+  getNearbyPlaces,
+  fetchNearbyPlacesFromGoogle,
+  getMultipleNearbyPlaces,
+};

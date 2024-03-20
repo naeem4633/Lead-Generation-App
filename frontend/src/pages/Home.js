@@ -1,13 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GoogleMap from '../components/GoogleMap';
 import calculateNewPositionWithFactor from '../helper_functions';
 import axios from 'axios';
 
 function Home() {
-    const [searchAreas, setSearchAreas] = useState([{ marker: { lat: -34.397, lng: 150.544 }, radius: 1000 }]);
+    const [searchAreas, setSearchAreas] = useState([]);
+    const [addedSearchAreas, setAddedSearchAreas] = useState(0);
+
+    useEffect(() => {
+    }, [addedSearchAreas]);
+
+    useEffect(() => {
+        // Function to fetch search areas from backend
+        const fetchSearchAreas = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/last10SearchAreas');
+                // Map the received data to match the structure of your searchAreas state
+                const mappedData = response.data.map(area => ({
+                    marker: { lat: area.latitude, lng: area.longitude },
+                    radius: area.radius
+                }));
+                setSearchAreas(mappedData);
+            } catch (error) {
+                console.error('Error fetching search areas:', error);
+            }
+        };
+
+        // Fetch search areas when component mounts
+        fetchSearchAreas();
+    }, []);
+
+    const handleLast50Click = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/last50SearchAreas');
+            const mappedData = response.data.map(area => ({
+                marker: { lat: area.latitude, lng: area.longitude },
+                radius: area.radius
+            }));
+            setSearchAreas(mappedData);
+        } catch (error) {
+            console.error('Error fetching last 50 search areas:', error);
+        }
+    };
+
+    const handleLast100Click = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/last100SearchAreas');
+            const mappedData = response.data.map(area => ({
+                marker: { lat: area.latitude, lng: area.longitude },
+                radius: area.radius
+            }));
+            setSearchAreas(mappedData);
+        } catch (error) {
+            console.error('Error fetching last 100 search areas:', error);
+        }
+    };
 
     const handleDirectionClick = (direction) => {
-        console.log('clicked')
         const lastSearchArea = searchAreas[searchAreas.length - 1];
         const { lat, lng } = lastSearchArea.marker;
         const { radius } = lastSearchArea;
@@ -32,7 +81,7 @@ function Home() {
 
         const updatedSearchAreas = [...searchAreas, { marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
         setSearchAreas(updatedSearchAreas);
-        console.log(searchAreas)
+        setAddedSearchAreas(prevCount => prevCount + 1);
     };
 
     const handleAddSearchArea = () => {
@@ -43,6 +92,7 @@ function Home() {
         if (!isNaN(latitude) && !isNaN(longitude) && !isNaN(radius)) {
             const newSearchArea = { marker: { lat: latitude, lng: longitude }, radius: radius };
             setSearchAreas([...searchAreas, newSearchArea]);
+            setAddedSearchAreas(prevCount => prevCount + 1);
         }
     };
 
@@ -51,6 +101,7 @@ function Home() {
         if (updatedSearchAreas.length > 0) {
             updatedSearchAreas.pop();
             setSearchAreas(updatedSearchAreas);
+            setAddedSearchAreas(prevCount => prevCount - 1);
         } else {
             console.log("No search areas to delete.");
         }
@@ -63,11 +114,16 @@ function Home() {
 
     const handleSearchClick = async () => {
         try {
-            await axios.post('http://localhost:5000/api/searchAreas/multiple', searchAreas, {
+            // Slice the searchAreas array to include only the recently added search areas
+            const recentSearchAreas = searchAreas.slice(-addedSearchAreas);
+            
+            // Send the sliced array in the request
+            await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
+            
             console.log('Search areas sent successfully');
         } catch (error) {
             console.error('Error sending search areas:', error);
@@ -88,6 +144,8 @@ function Home() {
                     <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
                     <button className='w-32 h-10 bg-gray-500' onClick={handleDeleteLastArea}>Delete Last</button>
                     <button className='w-32 h-10 bg-gray-500' onClick={handleSearchClick}>Search</button>
+                    <button className='w-32 h-10 bg-gray-500' onClick={handleLast50Click}>Get last 50</button>
+                    <button className='w-32 h-10 bg-gray-500' onClick={handleLast100Click}>Get last 100</button>
                 </div>
 
                 <div className='w-60 flex flex-col cursor-pointer items-center select-none'>
