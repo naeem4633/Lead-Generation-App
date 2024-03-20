@@ -3,6 +3,7 @@ const Place = require('../models/placeModel');
 // Create a new place
 const createPlace = async (req, res) => {
     try {
+        console.log(req.body);
         const displayName = req.body.displayName.text;
         const placeData = { ...req.body, displayName };
         const newPlace = await Place.create(placeData);

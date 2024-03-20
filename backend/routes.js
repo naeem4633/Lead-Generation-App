@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const fetchNearbyPlaces = require('./controllers/placesAPIController.js');
 const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces} = require('./controllers/placeController.js');
+const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea} = require('./controllers/searchAreaController');
+const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
 
 router.get('/google-api', async (req, res) => {
   try {
@@ -18,11 +20,27 @@ router.get('/google-api', async (req, res) => {
 });
 
 // Place routess
-router.post('/api/place', createPlace)
-router.post('/api/places', createMultiplePlaces)
-router.get('/api/place/:id', getPlace)
-router.get('/api/places', getAllPlaces)
-router.delete('/api/place/:id', deletePlace)
-router.put('/api/place/:id', updatePlace)
+router.post('/place', createPlace)
+router.post('/places', createMultiplePlaces)
+router.get('/place/:id', getPlace)
+router.get('/places', getAllPlaces)
+router.delete('/place/:id', deletePlace)
+router.put('/place/:id', updatePlace)
+
+// Routes for search areas
+router.post('/searchAreas', addSearchArea);
+router.post('/searchAreas/multiple', addMultipleSearchAreas);
+router.get('/searchAreas', getAllSearchAreas);
+router.get('/searchAreas/:id', getSearchAreaById);
+router.put('/searchAreas/:id', updateSearchArea);
+router.delete('/searchAreas/:id', deleteSearchArea);
+
+// Routes for leads 
+router.post('/leads', createLead);
+router.post('/leads/multiple', createMultipleLeads);
+router.get('/leads/:id', getLead);
+router.get('/leads', getAllLeads);
+router.put('/leads/:id', updateLead);
+router.delete('/leads/:id', deleteLead);
 
 module.exports = router;

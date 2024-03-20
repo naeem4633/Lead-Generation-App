@@ -45,6 +45,16 @@ function Home() {
         }
     };
 
+    const handleDeleteLastArea = () => {
+        const updatedSearchAreas = [...searchAreas];
+        if (updatedSearchAreas.length > 0) {
+            updatedSearchAreas.pop();
+            setSearchAreas(updatedSearchAreas);
+        } else {
+            console.log("No search areas to delete.");
+        }
+    };
+
     const handleMapClick = (latitude, longitude) => {
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
@@ -62,6 +72,7 @@ function Home() {
                         <input id="radius" className='border border-black' type="text" placeholder="Radius" />
                     </div>
                     <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
+                    <button className='w-32 h-10 bg-gray-500' onClick={handleDeleteLastArea}>Delete Last</button>
                 </div>
 
                 <div className='w-60 flex flex-col cursor-pointer items-center select-none'>
