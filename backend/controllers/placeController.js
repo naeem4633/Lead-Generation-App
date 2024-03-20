@@ -1,12 +1,44 @@
 const Place = require('../models/placeModel');
 
 // Create a new place
-const createPlace = async (req, res) => {
+const createPlaceFromGoogleApi = async (req, res) => {
     try {
         console.log(req.body);
         const displayName = req.body.displayName.text;
         const placeData = { ...req.body, displayName };
         const newPlace = await Place.create(placeData);
+        res.status(201).json(newPlace);
+    } catch (error) {
+        console.error('Error creating place:', error);
+        res.status(500).json({ error: 'Error creating place' });
+    }
+};
+
+// Create multiple places
+const createMultiplePlacesFromGoogleApi = async (req, res) => {
+    try {
+        const { places } = req.body;
+        const createdPlaces = [];
+
+        for (const placeData of places) {
+            const displayName = placeData.displayName.text;
+            const place = { ...placeData, displayName };
+            const createdPlace = await Place.create(place);
+            createdPlaces.push(createdPlace);
+        }
+
+        res.json({ places: createdPlaces });
+    } catch (error) {
+        console.error('Error creating places:', error);
+        res.status(500).json({ error: 'Error creating places' });
+    }
+};
+
+// Create a new place
+const createPlace = async (req, res) => {
+    try {
+        console.log(req.body);
+        const newPlace = await Place.create(req.body);
         res.status(201).json(newPlace);
     } catch (error) {
         console.error('Error creating place:', error);
@@ -21,9 +53,7 @@ const createMultiplePlaces = async (req, res) => {
         const createdPlaces = [];
 
         for (const placeData of places) {
-            const displayName = placeData.displayName.text;
-            const place = { ...placeData, displayName };
-            const createdPlace = await Place.create(place);
+            const createdPlace = await Place.create(placeData);
             createdPlaces.push(createdPlace);
         }
 
@@ -102,4 +132,6 @@ module.exports = {
   deletePlace,
   getAllPlaces,
   createMultiplePlaces,
+  createPlaceFromGoogleApi,
+  createMultiplePlacesFromGoogleApi
 };

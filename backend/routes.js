@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const fetchNearbyPlaces = require('./controllers/placesAPIController.js');
-const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces} = require('./controllers/placeController.js');
-const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea} = require('./controllers/searchAreaController');
+const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi} = require('./controllers/placeController.js');
+const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
 
 router.get('/google-api', async (req, res) => {
@@ -20,24 +20,28 @@ router.get('/google-api', async (req, res) => {
 });
 
 // Place routess
-router.post('/place', createPlace)
-router.post('/places', createMultiplePlaces)
-router.get('/place/:id', getPlace)
+router.post('/place', createPlaceFromGoogleApi)
+router.post('/places', createMultiplePlacesFromGoogleApi)
+router.post('/placeNormal', createPlace)
+router.post('/placesNormal', createMultiplePlaces)
+router.get('/places/:id', getPlace)
 router.get('/places', getAllPlaces)
-router.delete('/place/:id', deletePlace)
-router.put('/place/:id', updatePlace)
+router.delete('/places/:id', deletePlace)
+router.put('/places/:id', updatePlace)
 
 // Routes for search areas
-router.post('/searchAreas', addSearchArea);
-router.post('/searchAreas/multiple', addMultipleSearchAreas);
+router.post('/searchArea', addSearchAreaFromFrontend);
+router.post('/searchAreas', addMultipleSearchAreasFromFrontend);
+router.post('/searchAreaNormal', addSearchArea);
+router.post('/searchAreasNormal', addMultipleSearchAreas);
 router.get('/searchAreas', getAllSearchAreas);
 router.get('/searchAreas/:id', getSearchAreaById);
 router.put('/searchAreas/:id', updateSearchArea);
 router.delete('/searchAreas/:id', deleteSearchArea);
 
 // Routes for leads 
-router.post('/leads', createLead);
-router.post('/leads/multiple', createMultipleLeads);
+router.post('/lead', createLead);
+router.post('/leads', createMultipleLeads);
 router.get('/leads/:id', getLead);
 router.get('/leads', getAllLeads);
 router.put('/leads/:id', updateLead);

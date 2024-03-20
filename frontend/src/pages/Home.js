@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import GoogleMap from '../components/GoogleMap';
 import calculateNewPositionWithFactor from '../helper_functions';
+import axios from 'axios';
 
 function Home() {
     const [searchAreas, setSearchAreas] = useState([{ marker: { lat: -34.397, lng: 150.544 }, radius: 1000 }]);
@@ -60,6 +61,19 @@ function Home() {
         document.getElementById('longitude').value = longitude;
     };
 
+    const handleSearchClick = async () => {
+        try {
+            await axios.post('http://localhost:5000/api/searchAreas/multiple', searchAreas, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('Search areas sent successfully');
+        } catch (error) {
+            console.error('Error sending search areas:', error);
+        }
+    };
+
     return (
         <>
         <div className='mx-auto w-3/4 flex flex-col border border-black justify-center items-center'>
@@ -73,6 +87,7 @@ function Home() {
                     </div>
                     <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
                     <button className='w-32 h-10 bg-gray-500' onClick={handleDeleteLastArea}>Delete Last</button>
+                    <button className='w-32 h-10 bg-gray-500' onClick={handleSearchClick}>Search</button>
                 </div>
 
                 <div className='w-60 flex flex-col cursor-pointer items-center select-none'>

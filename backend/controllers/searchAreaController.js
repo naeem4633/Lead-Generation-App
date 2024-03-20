@@ -23,6 +23,34 @@ const addMultipleSearchAreas = async (req, res) => {
     }
 };
 
+// Add a single search area from frontend
+const addSearchAreaFromFrontend = async (req, res) => {
+    try {
+        const { marker, radius } = req.body;
+        const { lat, lng } = marker;
+        const searchArea = new SearchArea({ latitude: lat, longitude: lng, radius });
+        await searchArea.save();
+        res.status(201).json(searchArea);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Add multiple search areas from frontend
+const addMultipleSearchAreasFromFrontend = async (req, res) => {
+    try {
+        const searchAreas = req.body.map(area => ({
+            latitude: area.marker.lat,
+            longitude: area.marker.lng,
+            radius: area.radius
+        }));
+        const addedSearchAreas = await SearchArea.insertMany(searchAreas);
+        res.status(201).json(addedSearchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Get all search areas
 const getAllSearchAreas = async (req, res) => {
     try {
@@ -85,4 +113,6 @@ module.exports = {
     getSearchAreaById,
     updateSearchArea,
     deleteSearchArea,
+    addSearchAreaFromFrontend,
+    addMultipleSearchAreasFromFrontend,
 };

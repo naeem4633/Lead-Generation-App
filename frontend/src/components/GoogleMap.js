@@ -4,8 +4,8 @@ import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
   const handleMapClick = (mapProps, map, clickEvent) => {
       const { latLng } = clickEvent;
-      const latitude = latLng.lat();
-      const longitude = latLng.lng();
+      const latitude = latLng.lat().toFixed(4);
+      const longitude = latLng.lng().toFixed(4);
       onMapClick(latitude, longitude);
   };
 
