@@ -6,6 +6,7 @@ import axios from 'axios';
 function Home() {
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreas, setAddedSearchAreas] = useState(0);
+    const [placesResponse, setPlacesResponse] = useState([]);
 
     useEffect(() => {
     }, [addedSearchAreas]);
@@ -125,6 +126,13 @@ function Home() {
             });
             
             console.log('Search areas sent successfully');
+
+            const nearbyPlacesResponse = await axios.post('http://localhost:5000/api/multiple-nearby-places', recentSearchAreas, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            setPlacesResponse(nearbyPlacesResponse.data);
         } catch (error) {
             console.error('Error sending search areas:', error);
         }

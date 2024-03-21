@@ -5,13 +5,15 @@ const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMul
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
 
-router.get('/google-api', async (req, res) => {
+router.post('/google-api', async (req, res) => {
   try {
+    const { marker, radius } = req.body;
+    const { lat, lng } = marker;
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
       throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
     }
-    const placesData = await fetchNearbyPlacesFromGoogle(apiKey);
+    const placesData = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
     res.json(placesData);
   } catch (error) {
     console.error('Error fetching nearby places:', error);

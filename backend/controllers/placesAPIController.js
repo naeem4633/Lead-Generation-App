@@ -4,8 +4,11 @@ const apiKey = process.env.API_KEY;
 // Function to process an array of searchArea objects and fetch nearby places for each
 async function getMultipleNearbyPlaces(req, res) {
   try {
-    // Extract the array of searchAreas from the request body
-    const { searchAreas } = req.body;
+    // Ensure searchAreas is defined and is an array
+    const searchAreas = req.body;
+    if (!searchAreas || !Array.isArray(searchAreas)) {
+      return res.status(400).json({ error: 'Search areas array is missing or invalid' });
+    }
 
     // Array to store results
     const nearbyPlaces = [];
@@ -14,6 +17,11 @@ async function getMultipleNearbyPlaces(req, res) {
     for (const area of searchAreas) {
       const { marker, radius } = area;
       const { lat, lng } = marker;
+
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
+      }
 
       // Call getNearbyPlaces function for each search area
       const nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
@@ -29,12 +37,18 @@ async function getMultipleNearbyPlaces(req, res) {
   }
 }
 
+
 //function to process data and call fetchNearbyPlacesFromGoogle
 async function getNearbyPlaces(req, res) {
   try {
       // Extract latitude, longitude, and radius from the request body
       const { marker, radius } = req.body;
       const { lat, lng } = marker;
+
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
+      }
 
       // Call fetchNearbyPlacesFromGoogle with the extracted parameters
       const nearbyPlaces = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
