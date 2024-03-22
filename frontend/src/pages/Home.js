@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react';
 import GoogleMap from '../components/GoogleMap';
 import calculateNewPositionWithFactor from '../helper_functions';
 import axios from 'axios';
+import {Link} from 'react-router-dom';
+import { samplePlaceData } from '../samplePlaceData';
 
-function Home() {
+function Home({placesResponse, setPlacesResponse}) {
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreas, setAddedSearchAreas] = useState(0);
-    const [placesResponse, setPlacesResponse] = useState([]);
+
+    useEffect(() => {
+        console.log('Places:', placesResponse);
+    }, [placesResponse]);
 
     useEffect(() => {
     }, [addedSearchAreas]);
@@ -114,6 +119,7 @@ function Home() {
     };
 
     const handleSearchClick = async () => {
+        setPlacesResponse(samplePlaceData);
         try {
             // Slice the searchAreas array to include only the recently added search areas
             const recentSearchAreas = searchAreas.slice(-addedSearchAreas);
@@ -132,6 +138,7 @@ function Home() {
                     'Content-Type': 'application/json'
                 }
             });
+            console.log("nearbyplacsreposnse: "+ nearbyPlacesResponse.data)
             setPlacesResponse(nearbyPlacesResponse.data);
         } catch (error) {
             console.error('Error sending search areas:', error);
@@ -140,44 +147,47 @@ function Home() {
 
     return (
         <>
-        <div className='mx-auto w-3/4 flex flex-col border border-black justify-center items-center'>
-            <div className='flex'>
-                <div className='flex flex-col justify-center items-center border border-black space-y-2'>
-                    <p>Add search area</p>
-                    <div className='flex'>  
-                        <input id="latitude" className='border border-black' type="text" placeholder="Latitude" />
-                        <input id="longitude" className='border border-black' type="text" placeholder="Longitude" />
-                        <input id="radius" className='border border-black' type="text" placeholder="Radius" />
+        <div className='w-full flex flex-col space-y-32'>
+            <div className='mx-auto w-3/4 flex flex-col border border-black justify-center items-center'>
+                <div className='flex'>
+                    <div className='flex flex-col justify-center items-center border border-black space-y-2'>
+                        <p>Add search area</p>
+                        <div className='flex'>  
+                            <input id="latitude" className='border border-black' type="text" placeholder="Latitude" />
+                            <input id="longitude" className='border border-black' type="text" placeholder="Longitude" />
+                            <input id="radius" className='border border-black' type="text" placeholder="Radius" />
+                        </div>
+                        <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
+                        <button className='w-32 h-10 bg-gray-500' onClick={handleDeleteLastArea}>Delete Last</button>
+                        <Link to={'/search-results'} className='w-32 h-10 bg-gray-500' onClick={handleSearchClick}>Search</Link>
+                        <button className='w-32 h-10 bg-gray-500' onClick={handleLast50Click}>Get last 50</button>
+                        <button className='w-32 h-10 bg-gray-500' onClick={handleLast100Click}>Get last 100</button>
                     </div>
-                    <button className='w-32 h-10 bg-gray-500' onClick={handleAddSearchArea}>Add</button>
-                    <button className='w-32 h-10 bg-gray-500' onClick={handleDeleteLastArea}>Delete Last</button>
-                    <button className='w-32 h-10 bg-gray-500' onClick={handleSearchClick}>Search</button>
-                    <button className='w-32 h-10 bg-gray-500' onClick={handleLast50Click}>Get last 50</button>
-                    <button className='w-32 h-10 bg-gray-500' onClick={handleLast100Click}>Get last 100</button>
-                </div>
 
-                <div className='w-60 flex flex-col cursor-pointer items-center select-none'>
-                    <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('north')}>
-                        <p>North</p>
-                    </div>
-                    <div className='w-4/5 flex flex-row items-center justify-between'>
-                        <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('west')}>
-                            <p>West</p>
+                    <div className='w-60 flex flex-col cursor-pointer items-center select-none'>
+                        <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('north')}>
+                            <p>North</p>
                         </div>
-                        <div className='flex w-16 h-16 items-center justify-center' onClick={() => handleDirectionClick('south')}>
-                            <p>South</p>
-                        </div>
-                        <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('east')}>
-                            <p>East</p>
+                        <div className='w-4/5 flex flex-row items-center justify-between'>
+                            <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('west')}>
+                                <p>West</p>
+                            </div>
+                            <div className='flex w-16 h-16 items-center justify-center' onClick={() => handleDirectionClick('south')}>
+                                <p>South</p>
+                            </div>
+                            <div className='flex w-16 h-16 border border-black items-center justify-center' onClick={() => handleDirectionClick('east')}>
+                                <p>East</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="mx-auto w-full flex flex-row border border-black">
-                <div className="w-[800px] h-[501px] border border-black">
-                    <GoogleMap width="1000px" height="500px" searchAreas={searchAreas} onMapClick={handleMapClick} />
+                <div className="mx-auto w-full flex flex-row border border-black">
+                    <div className="w-[800px] h-[501px] border border-black">
+                        <GoogleMap width="1000px" height="500px" searchAreas={searchAreas} onMapClick={handleMapClick} />
+                    </div>
                 </div>
             </div>
+            
         </div>
         </>
     );
