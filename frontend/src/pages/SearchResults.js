@@ -33,7 +33,7 @@ const SearchResults = ({placesResponse}) => {
                                         <p className='text-sm'>{place.formattedAddress}</p> 
                                     </div>
                                 </div>
-                                <div className='w-1/2 flex flex-col items-start'>
+                                <div className='w-1/2 flex flex-col items-start text-sm'>
                                     {place.websiteUri ? (
                                         <div className='w-full flex space-x-2 justify-start items-center p-2 hover:bg-gray-200 hover:underline rounded cursor-pointer'>
                                             <img className='w-5 h-5 select-none' src='../static/images/link.svg'></img>
@@ -45,19 +45,19 @@ const SearchResults = ({placesResponse}) => {
                                         <p className='w-full p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
                                     )}
                                     {place.internationalPhoneNumber ? (
-                                        <div className='flex space-x-2 justify-center p-2 items-center text-sm'>
+                                        <div className='flex space-x-2 justify-center p-2 items-center'>
                                             <img src='../static/images/phone.svg' className='w-5 h-5 select-none'></img>
                                             <p className='w-full rounded cursor-pointer text-center'>{place.internationalPhoneNumber}</p>
                                         </div>
                                     ) : (
-                                        <p style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
+                                        <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
                                     )}
                                     {place.businessStatus !== 'OPERATIONAL' && (
-                                        <p style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
+                                        <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
                                     )}
                                     <div className='flex p-2 space-x-2 items-center justify-center'>
                                         <img className='w-5 h-5 select-none' src='../static/images/google.svg'></img>
-                                        <a className='text-sm hover:underline' href={place.googleMapsUri} target="_blank" rel="noopener noreferrer">{place.googleMapsUri}</a>
+                                        <a className='hover:underline' href={place.googleMapsUri} target="_blank" rel="noopener noreferrer">{place.googleMapsUri}</a>
                                     </div>
                                 </div>
                             </div>

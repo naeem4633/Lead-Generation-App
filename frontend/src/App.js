@@ -16,7 +16,7 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <Header />
+        {/* <Header /> */}
         <div className="app-body">
           <Routes>
             <Route path="/" element={<Home placesResponse={placesResponse} setPlacesResponse={setPlacesResponse} />} />
