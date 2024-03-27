@@ -153,6 +153,47 @@ function Home() {
         }
     };
     
+    const handleSaveButtonClick = async () => {
+        try {
+          const placesToSave = [];
+      
+          // Iterate over each placesObject in placesResponse
+          placesResponse.forEach(placesObject => {
+            // Iterate over each place in the placesObject
+            placesObject.places.forEach(place => {
+              const placeToSave = {
+                id: place.id,
+                displayName: place.displayName.text,
+                internationalPhoneNumber: place.internationalPhoneNumber || '',
+                formattedAddress: place.formattedAddress,
+                websiteUri: place.websiteUri || '',
+                googleMapsUri: place.googleMapsUri || '',
+                businessStatus: place.businessStatus || '',
+                rating: place.rating || 0,
+                userRatingCount: place.userRatingCount || 0
+              };
+              placesToSave.push(placeToSave);
+            });
+          });
+      
+          const response = await fetch('http://localhost:5000/api/placesNormal', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ places: placesToSave })
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to save places');
+          }
+      
+          const data = await response.json();
+          console.log('Places saved:', data);
+        } catch (error) {
+          console.error('Error saving places:', error);
+        }
+      };
 
     const handleMapClick = (latitude, longitude) => {
         document.getElementById('latitude').value = latitude;
@@ -323,7 +364,7 @@ function Home() {
                                                     <p className='w-full rounded cursor-pointer text-center'>{place.internationalPhoneNumber}</p>
                                                 </div>
                                             ) : (
-                                                <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
+                                                <p className='p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
                                             )}
                                             {place.businessStatus !== 'OPERATIONAL' && (
                                                 <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
@@ -338,6 +379,9 @@ function Home() {
                             </div>
                         ))}
                     </div>
+                </div>
+                <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-40 h-10 bg-gray-600 rounded cursor-pointer text-white'>
+                    <p>Save in places.</p>
                 </div>
             </section>
         </section>
