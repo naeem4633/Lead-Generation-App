@@ -23,8 +23,14 @@ async function getMultipleNearbyPlaces(req, res) {
         throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
       }
 
-      // Call getNearbyPlaces function for each search area
-      const nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
+      // Call fetchNearbyPlacesFromGoogle function for each search area
+      let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
+
+      // Check if the response is empty (contains no places)
+      if (Object.keys(nearbyPlace).length === 0) {
+        nearbyPlace = { places: [] }; // Adjust the response format to match the format of other responses
+      }
+
       nearbyPlaces.push(nearbyPlace);
     }
 
@@ -36,6 +42,7 @@ async function getMultipleNearbyPlaces(req, res) {
     res.status(500).json({ error: 'Error fetching nearby places' });
   }
 }
+
 
 
 //function to process data and call fetchNearbyPlacesFromGoogle
@@ -52,7 +59,10 @@ async function getNearbyPlaces(req, res) {
 
       // Call fetchNearbyPlacesFromGoogle with the extracted parameters
       const nearbyPlaces = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
-      
+
+      if (Object.keys(nearbyPlaces).length === 0) {
+        nearbyPlaces = { places: [] }; // Adjust the response format to match the format of other responses
+      }
       // Send the nearby places as the response
       res.json(nearbyPlaces);
   } catch (error) {

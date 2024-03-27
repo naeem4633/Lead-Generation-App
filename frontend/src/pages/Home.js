@@ -160,30 +160,33 @@ function Home() {
     };
 
     const handleSearchClick = async () => {
-        setPlacesResponse(samplePlaceData);
-        // try {
-        //     // Slice the searchAreas array to include only the recently added search areas
-        //     const recentSearchAreas = searchAreas.slice(-addedSearchAreas);
+        // setPlacesResponse(samplePlaceData);
+        try {
+            // Slice the searchAreas array to include only the recently added search areas
+            const recentSearchAreas = searchAreas.slice(-addedSearchAreas);
             
-        //     // Send the sliced array in the request
-        //     await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         }
-        //     });
+            // Send the sliced array in the request
+            await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
-        //     console.log('Search areas sent successfully');
+            console.log('Search areas sent successfully');
 
-        //     const nearbyPlacesResponse = await axios.post('http://localhost:5000/api/multiple-nearby-places', recentSearchAreas, {
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         }
-        //     });
-        //     console.log("nearbyplacsreposnse: "+ nearbyPlacesResponse.data)
-        //     setPlacesResponse(nearbyPlacesResponse.data);
-        // } catch (error) {
-        //     console.error('Error sending search areas:', error);
-        // }
+            const nearbyPlacesResponse = await axios.post('http://localhost:5000/api/multiple-nearby-places', recentSearchAreas, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log("nearbyplacsreposnse: "+ JSON.stringify(nearbyPlacesResponse.data))
+            console.log("originalplacsreposnse: "+ JSON.stringify(placesResponse))
+            console.log("recent search areas count: "+ recentSearchAreas.length)
+            setAddedSearchAreas(0)
+            setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
+        } catch (error) {
+            console.error('Error sending search areas:', error);
+        }
     };
 
     return (
