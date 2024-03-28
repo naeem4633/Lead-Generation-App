@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces} = require('./controllers/placesAPIController.js');
+const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, getMultipleNearbyPlacesDefault} = require('./controllers/placesAPIController.js');
 const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi} = require('./controllers/placeController.js');
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
@@ -23,6 +23,7 @@ router.post('/google-api', async (req, res) => {
 
 // Define the route for fetching nearby places
 router.post('/nearby-places', getNearbyPlaces);
+router.post('/multiple-nearby-places-default', getMultipleNearbyPlacesDefault);
 router.post('/multiple-nearby-places', getMultipleNearbyPlaces);
 
 // Place routess

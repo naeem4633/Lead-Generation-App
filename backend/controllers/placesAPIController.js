@@ -2,7 +2,7 @@ const axios = require('axios');
 const apiKey = process.env.API_KEY;
 
 // Function to process an array of searchArea objects and fetch nearby places for each
-async function getMultipleNearbyPlaces(req, res) {
+async function getMultipleNearbyPlacesDefault(req, res) {
   try {
     // Ensure searchAreas is defined and is an array
     const searchAreas = req.body;
@@ -25,6 +25,49 @@ async function getMultipleNearbyPlaces(req, res) {
 
       // Call fetchNearbyPlacesFromGoogle function for each search area
       let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
+
+      // Check if the response is empty (contains no places)
+      if (Object.keys(nearbyPlace).length === 0) {
+        nearbyPlace = { places: [] }; // Adjust the response format to match the format of other responses
+      }
+
+      nearbyPlaces.push(nearbyPlace);
+    }
+
+    // Send the array of nearby places as the response
+    res.json(nearbyPlaces);
+  } catch (error) {
+    // Handle errors
+    console.error('Error fetching nearby places:', error);
+    res.status(500).json({ error: 'Error fetching nearby places' });
+  }
+}
+
+// Function to process an array of searchArea objects and fetch nearby places for each
+async function getMultipleNearbyPlaces(req, res) {
+  try {
+    // Ensure searchAreas is defined and is an array
+    const { keywordArray, searchAreas } = req.body;
+
+    if (!Array.isArray(keywordArray) || !Array.isArray(searchAreas)) {
+      return res.status(400).json({ error: 'Keyword array or search areas array is missing or invalid' });
+    }
+
+    // Array to store results
+    const nearbyPlaces = [];
+
+    // Process each search area
+    for (const area of searchAreas) {
+      const { marker, radius } = area;
+      const { lat, lng } = marker;
+
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
+      }
+
+      // Call fetchNearbyPlacesFromGoogle function for each search area
+      let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius, keywordArray);
 
       // Check if the response is empty (contains no places)
       if (Object.keys(nearbyPlace).length === 0) {
@@ -74,9 +117,10 @@ async function getNearbyPlaces(req, res) {
 
 
 //Function to fetch nearby places
-async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius) {
+async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius, keywordArray) {
   const requestData = {
-    includedTypes: ["gym", "fitness_center"],
+    // includedTypes: ["gym", "fitness_center"],
+    includedTypes: keywordArray,
     excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", "physiotherapist", "sports_complex", "sports_club"],
     maxResultCount: 20,
     locationRestriction: {
@@ -180,4 +224,5 @@ module.exports = {
   getNearbyPlaces,
   fetchNearbyPlacesFromGoogle,
   getMultipleNearbyPlaces,
+  getMultipleNearbyPlacesDefault
 };

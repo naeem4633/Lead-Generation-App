@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import GoogleMap from '../components/GoogleMap';
 import calculateNewPositionWithFactor from '../helper_functions';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { samplePlaceData } from '../samplePlaceData';
-import { Navigate } from 'react-router-dom';
 import CustomRadiusSlider from '../components/CustomRadiusSlider';
+import isValidKeyword from '../keywordValidation';
 
 function Home() {
     const [searchAreas, setSearchAreas] = useState([]);
-    const [addedSearchAreas, setAddedSearchAreas] = useState(1000);
+    const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [radius, setRadius] = useState(0);
     const [placesResponse, setPlacesResponse] = useState([]);
+    const [invalidKeyword, setInvalidKeyword] = useState(false);
 
     let overallIndex = 0;
 
@@ -20,7 +21,7 @@ function Home() {
     }, [placesResponse]);
 
     useEffect(() => {
-    }, [addedSearchAreas]);
+    }, [addedSearchAreasCount]);
 
     useEffect(() => {
         // Function to fetch search areas from backend
@@ -108,7 +109,7 @@ function Home() {
 
         const updatedSearchAreas = [...searchAreas, { marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
         setSearchAreas(updatedSearchAreas);
-        setAddedSearchAreas(prevCount => prevCount + 1);
+        setaddedSearchAreasCount(prevCount => prevCount + 1);
     };
 
     const handleAddSearchArea = () => {
@@ -122,7 +123,7 @@ function Home() {
             if (!isDuplicate) {
                 const newSearchArea = { marker: { lat: latitude, lng: longitude }, radius: radius };
                 setSearchAreas([...searchAreas, newSearchArea]);
-                setAddedSearchAreas(prevCount => prevCount + 1);
+                setaddedSearchAreasCount(prevCount => prevCount + 1);
             } else {
                 console.error('Duplicate search area');
             }
@@ -134,7 +135,7 @@ function Home() {
         if (updatedSearchAreas.length > 0) {
             const lastSearchArea = updatedSearchAreas.pop();
             setSearchAreas(updatedSearchAreas);
-            setAddedSearchAreas(prevCount => prevCount - 1);
+            setaddedSearchAreasCount(prevCount => prevCount - 1);
     
             // Check if the lastSearchArea has an ID
             if (lastSearchArea && lastSearchArea.id) {
@@ -201,119 +202,180 @@ function Home() {
     };
 
     const handleSearchClick = async () => {
-        // setPlacesResponse(samplePlaceData);
-        try {
-            // Slice the searchAreas array to include only the recently added search areas
-            const recentSearchAreas = searchAreas.slice(-addedSearchAreas);
-            
-            // Send the sliced array in the request
-            await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            console.log('Search areas sent successfully');
-
-            const nearbyPlacesResponse = await axios.post('http://localhost:5000/api/multiple-nearby-places', recentSearchAreas, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            console.log("nearbyplacsreposnse: "+ JSON.stringify(nearbyPlacesResponse.data))
-            console.log("originalplacsreposnse: "+ JSON.stringify(placesResponse))
-            console.log("recent search areas count: "+ recentSearchAreas.length)
-            setAddedSearchAreas(0)
-            setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
-        } catch (error) {
-            console.error('Error sending search areas:', error);
+        setInvalidKeyword(false);
+        const keywordInput = document.getElementById('keyword');
+        if (!keywordInput) {
+            console.error('Input field with id "keyword" not found');
+            return;
         }
-    };
+      
+        const keyword = keywordInput.value;
+      
+        // Process the keyword input
+        let keywordArray = [];
+        if (keyword) {
+            // Split the input by comma if it contains commas
+            keywordArray = keyword.includes(',') ? keyword.split(',') : [keyword];
+            // Trim whitespaces from each keyword and remove empty strings
+            keywordArray = keywordArray.map(keyword => keyword.trim()).filter(Boolean);
+          
+            // Replace spaces with underscores for keywords with two words
+            keywordArray = keywordArray.map(keyword => {
+                if (keyword.includes(' ')) {
+                    return keyword.replace(/\s+/g, '_');
+                } else {
+                    return keyword;
+                }
+            });
+        }
+      
+        console.log('Keyword Array:', keywordArray);
+      
+        // Validate each keyword in the array
+        for (const kw of keywordArray) {
+          if (!isValidKeyword(kw)) {
+            console.log('Invalid keyword:', kw);
+            setInvalidKeyword(true);
+            return;
+          }
+        }
+
+        // Check if the keyword is empty
+        if (!keyword.trim()) {
+            console.error('Keyword is empty');
+            setInvalidKeyword(true);
+            return;
+        }
+      
+        try {
+          // Slice the searchAreas array to include only the recently added search areas
+          console.log("added search areas count when sending request"+addedSearchAreasCount)
+          if(addedSearchAreasCount === 0){
+            console.error("no added search areas");
+            return;
+          }
+          const recentSearchAreas = searchAreas.slice(-addedSearchAreasCount);
+      
+          // Send the sliced array in the request
+          await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+      
+          console.log('Search areas sent successfully');
+          console.log("kwyword array being sent" + keywordArray)
+
+          console.log("recent search areas wen sending req length" + recentSearchAreas.length)
+
+      
+          const nearbyPlacesResponse = await axios.post(
+            'http://localhost:5000/api/multiple-nearby-places',
+            { searchAreas: recentSearchAreas, keywordArray },
+            {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          console.log("nearbyplacsreposnse length: " + JSON.stringify(nearbyPlacesResponse.data.length))
+        //   console.log("originalplacsreposnse: " + JSON.stringify(placesResponse))
+          console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas))
+          setaddedSearchAreasCount(0)
+          setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
+        } catch (error) {
+          console.error('Error sending search areas:', error);
+        }
+      };
 
     return (
         <>
         <section className='w-full flex flex-col space-y-[20vh]'>
-            <section className='w-full flex flex-col min-h-screen'>
+            <section className='w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
                     <GoogleMap width={window.innerWidth} height={window.innerHeight} searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
-                <div className='absolute mx-auto h-screen w-1/4 flex bg-white drop-shadow-xl'>
-                    <div className='w-full flex flex-col p-2 justify-center items-center'>
-                        <div className='w-full flex flex-col justify-center items-start border border-black space-y-4 p-2'>
-                            <div className='w-full flex flex-col border border-gray-400 space-y-4'>
-                                <div className='flex flex-col items-start space-y-2'>
-                                    <p>Add search area</p>
-                                    <div className='flex flex-col items-center space-y-4'>
-                                        <div className='flex justify-center items-center space-x-2'>
-                                            <input id="latitude" className='border border-black w-32 rounded text-sm p-2' type="text" placeholder="Latitude" />
-                                            <input id="longitude" className='border border-black w-32 rounded text-sm p-2' type="text" placeholder="Longitude" />
-                                        </div>
+                <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
+                    <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
+                        <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 px-2 py-4 custom-shadow bg-gray-50 rounded-md'>
+                            <div className='flex flex-col items-start space-y-2'>
+                                <p>Add search area</p>
+                                <div className='flex flex-col items-center space-y-4'>
+                                    <div className='flex justify-center items-center space-x-2'>
+                                        <input id="latitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Latitude" />
+                                        <input id="longitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Longitude" />
                                     </div>
-                                </div>
-                                <div className='flex flex-col items-start space-y-2'>
-                                    <p>Search Radius</p>
-                                    <div className='flex flex-col items-center'>
-                                        <CustomRadiusSlider setRadius={setRadius}/>
-                                    </div>
-                                </div>
-                                <div className='flex space-x-4'>
-                                    <button className='w-32 h-8 border-2 border-gray-500 bg-gray-200 text-sm rounded-md' onClick={handleAddSearchArea}>Add</button>
-                                    <button className='w-32 h-8 border-2 border-gray-500 bg-gray-200 text-sm rounded-md' onClick={handleDeleteLastArea}>Delete Last</button>
                                 </div>
                             </div>
+                            <div className='flex flex-col items-start space-y-2'>
+                                <p>Search Radius</p>
+                                <div className='flex flex-col items-center'>
+                                    <CustomRadiusSlider setRadius={setRadius}/>
+                                </div>
+                            </div>
+                            <div className='flex space-x-4'>
+                                <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleAddSearchArea}>Add</button>
+                                <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleDeleteLastArea}>Delete Last</button>
+                            </div>
+                        </div>
+                        <div className='h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='w-full flex flex-col space-y-2'>
                                 <p>Add More in direction:</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northwest')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northwest')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45' alt=''/>
                                         </div>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('north')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('north')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northeast')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northeast')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45' alt=''/>
                                         </div>
                                     </div>
                                     <div className='w-full flex flex-row items-center justify-between'>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded -rotate-90' onClick={() => handleDirectionClick('west')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded -rotate-90' onClick={() => handleDirectionClick('west')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded rotate-90' onClick={() => handleDirectionClick('east')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-90' onClick={() => handleDirectionClick('east')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
                                         </div>
                                     </div>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southwest')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southwest')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45' alt=''/>
                                         </div>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('south')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('south')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-black border border-black items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southeast')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45'></img>
+                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southeast')}>
+                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45' alt=''/>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className='w-full flex flex-row justify-start items-center border border-black px-2 py-4 space-x-4'>
+                        <div className='h-1/6 w-full flex flex-col justify-center items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
                             <p>Show Recent Search Areas :</p>
-                            <div className='flex items-center space-x-2'>
-                                <button className='w-10 h-8 border-2 border-black text-sm' onClick={handleLast50Click}>50</button>
-                                <button className='w-10 h-8 border-2 border-black text-sm' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 border-2 border-black text-sm' onClick={handleLast100Click}>All</button>
+                            <div className='flex items-center space-x-2 font-semibold tracking-wide'>
+                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast50Click}>50</button>
+                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>100</button>
+                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>All</button>
                             </div>
                         </div>
-                        <div className='w-full h-full flex flex-col justify-start items-start border border-black space-y-4 p-2'>
+                        <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='flex flex-col space-y-2'>
                                 <p>Search Options</p>
-                                <div className='flex flex-col justify-center items-center space-y-2'>  
+                                <div className='flex flex-col justify-center items-start space-y-2'>  
                                     <input id="keyword" className='border border-black w-28 rounded text-sm p-1' type="text" placeholder="Keyword" />
-                                    <input id="exclude_names" className='border border-black w-28 rounded text-sm p-1' type="text" placeholder="Exclude Names" />
+                                    {invalidKeyword && (
+                                        <div>
+                                        <p className="font-semibold text-red-500 text-sm">Empty / Invalid keyword</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <button className='w-32 h-8 border-2 border-gray-500 bg-gray-200 text-sm rounded-md' onClick={handleSearchClick}>Search</button>
+                            <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleSearchClick}>Search</button>
                         </div>
                     </div>
                 </div>      
@@ -335,7 +397,7 @@ function Home() {
                                             <p className='p-2 font-semibold'>{place.displayName.text}</p>
                                             <div className='p-2 flex space-x-2 justify-center items-center text-sm'>
                                                 <div className='flex justify-center items-center space-x-2'>
-                                                    <img className='w-4 h-4 select-none' src='../static/images/star.png'></img>
+                                                    <img className='w-4 h-4 select-none' src='../static/images/star.png' alt=''/>
                                                     <p>{place.rating}</p>
                                                 </div>
                                                 <p className='text-sm' style={{ fontWeight: place.userRatingCount < 10 ? 'bold' : 'normal', color: place.userRatingCount < 10 ? 'red' : 'inherit' }}>
@@ -343,14 +405,14 @@ function Home() {
                                                 </p> 
                                             </div>
                                             <div className='p-2 flex items-center justify-center space-x-2'>
-                                                <img src='../static/images/address.svg' className='w-4 h-4 select-none'></img>
+                                                <img src='../static/images/address.svg' className='w-4 h-4 select-none' alt=''/>
                                                 <p className='text-sm'>{place.formattedAddress}</p> 
                                             </div>
                                         </div>
                                         <div className='w-1/2 flex flex-col items-start text-sm'>
                                             {place.websiteUri ? (
                                                 <div className='w-full flex space-x-2 justify-start items-center p-2 hover:bg-gray-200 hover:underline rounded cursor-pointer'>
-                                                    <img className='w-5 h-5 select-none' src='../static/images/link.svg'></img>
+                                                    <img className='w-5 h-5 select-none' src='../static/images/link.svg' alt=''/>
                                                     <a className='' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
                                                         website
                                                     </a>
@@ -360,7 +422,7 @@ function Home() {
                                             )}
                                             {place.internationalPhoneNumber ? (
                                                 <div className='flex space-x-2 justify-center p-2 items-center'>
-                                                    <img src='../static/images/phone.svg' className='w-5 h-5 select-none'></img>
+                                                    <img src='../static/images/phone.svg' className='w-5 h-5 select-none' alt=''/>
                                                     <p className='w-full rounded cursor-pointer text-center'>{place.internationalPhoneNumber}</p>
                                                 </div>
                                             ) : (
@@ -370,7 +432,7 @@ function Home() {
                                                 <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
                                             )}
                                             <div className='flex p-2 space-x-2 items-center justify-center'>
-                                                <img className='w-5 h-5 select-none' src='../static/images/google.svg'></img>
+                                                <img className='w-5 h-5 select-none' src='../static/images/google.svg' alt=''/>
                                                 <a className='hover:underline' href={place.googleMapsUri} target="_blank" rel="noopener noreferrer">{place.googleMapsUri}</a>
                                             </div>
                                         </div>
@@ -381,7 +443,7 @@ function Home() {
                     </div>
                 </div>
                 <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-40 h-10 bg-gray-600 rounded cursor-pointer text-white'>
-                    <p>Save in places.</p>
+                    <p>Save results.</p>
                 </div>
             </section>
         </section>
