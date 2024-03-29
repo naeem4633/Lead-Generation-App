@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GoogleMap from '../components/GoogleMap';
 import calculateNewPositionWithFactor from '../helper_functions';
 import axios from 'axios';
+import '../home.css';
 import { Link } from 'react-router-dom';
 import { samplePlaceData } from '../samplePlaceData';
 import CustomRadiusSlider from '../components/CustomRadiusSlider';
@@ -13,6 +14,7 @@ function Home() {
     const [radius, setRadius] = useState(0);
     const [placesResponse, setPlacesResponse] = useState([]);
     const [invalidKeyword, setInvalidKeyword] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     let overallIndex = 0;
 
@@ -203,9 +205,12 @@ function Home() {
 
     const handleSearchClick = async () => {
         setInvalidKeyword(false);
+        setIsSearching(true); // Set isSearching to true before making the request
+    
         const keywordInput = document.getElementById('keyword');
         if (!keywordInput) {
             console.error('Input field with id "keyword" not found');
+            setIsSearching(false); // Set isSearching to false if the keyword input field is not found
             return;
         }
       
@@ -233,64 +238,99 @@ function Home() {
       
         // Validate each keyword in the array
         for (const kw of keywordArray) {
-          if (!isValidKeyword(kw)) {
-            console.log('Invalid keyword:', kw);
-            setInvalidKeyword(true);
-            return;
-          }
+            if (!isValidKeyword(kw)) {
+                console.log('Invalid keyword:', kw);
+                setInvalidKeyword(true);
+                setIsSearching(false); // Set isSearching to false if an invalid keyword is found
+                return;
+            }
         }
-
+    
         // Check if the keyword is empty
         if (!keyword.trim()) {
             console.error('Keyword is empty');
             setInvalidKeyword(true);
+            setIsSearching(false); // Set isSearching to false if the keyword is empty
             return;
         }
       
         try {
-          // Slice the searchAreas array to include only the recently added search areas
-          console.log("added search areas count when sending request"+addedSearchAreasCount)
-          if(addedSearchAreasCount === 0){
-            console.error("no added search areas");
+            // Slice the searchAreas array to include only the recently added search areas
+            console.log("added search areas count when sending request" + addedSearchAreasCount)
+            if (addedSearchAreasCount === 0) {
+                console.error("no added search areas");
+                setIsSearching(false); // Set isSearching to false if there are no added search areas
+                return;
+            }
+            const recentSearchAreas = searchAreas.slice(-addedSearchAreasCount);
+        
+            // Send the sliced array in the request
+            await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        
+            console.log('Search areas sent successfully');
+            console.log("kwyword array being sent" + keywordArray)
+    
+            console.log("recent search areas wen sending req length" + recentSearchAreas.length)
+    
+        
+            const nearbyPlacesResponse = await axios.post(
+                'http://localhost:5000/api/multiple-nearby-places',
+                { searchAreas: recentSearchAreas, keywordArray },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+    
+            console.log("nearbyplacesresponse length: " + nearbyPlacesResponse.length);
+            console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas));
+            setaddedSearchAreasCount(0);
+            setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
+        } catch (error) {
+            console.error('Error sending search areas:', error);
+        } finally {
+            setIsSearching(false); // Set isSearching to false after the request is completed (whether successful or not)
+            smoothScrollTo(0, window.innerHeight * 1.25, 800);
+        }
+    };
+
+    const smoothScrollTo = (endX, endY, duration) => {
+        const startX = window.scrollX;
+        const startY = window.scrollY;
+        const distanceX = endX - startX;
+        const distanceY = endY - startY;
+        const startTime = performance.now();
+      
+        const easeInOutQuad = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      
+        const step = currentTime => {
+          const elapsedTime = currentTime - startTime;
+          if (elapsedTime >= duration) {
+            window.scrollTo(endX, endY);
             return;
           }
-          const recentSearchAreas = searchAreas.slice(-addedSearchAreasCount);
+          const progress = easeInOutQuad(elapsedTime / duration);
+          window.scrollTo(startX + distanceX * progress, startY + distanceY * progress);
+          window.requestAnimationFrame(step);
+        };
       
-          // Send the sliced array in the request
-          await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-      
-          console.log('Search areas sent successfully');
-          console.log("kwyword array being sent" + keywordArray)
-
-          console.log("recent search areas wen sending req length" + recentSearchAreas.length)
-
-      
-          const nearbyPlacesResponse = await axios.post(
-            'http://localhost:5000/api/multiple-nearby-places',
-            { searchAreas: recentSearchAreas, keywordArray },
-            {
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          console.log("nearbyplacsreposnse length: " + JSON.stringify(nearbyPlacesResponse.data.length))
-        //   console.log("originalplacsreposnse: " + JSON.stringify(placesResponse))
-          console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas))
-          setaddedSearchAreasCount(0)
-          setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
-        } catch (error) {
-          console.error('Error sending search areas:', error);
-        }
+        window.requestAnimationFrame(step);
       };
+    
 
     return (
         <>
-        <section className='w-full flex flex-col space-y-[20vh]'>
+        {isSearching && (
+            <div className='overlay w-full h-screen flex items-center justify-center absolute top-0 left-0 bg-gray-100 opacity-50 z-10'>
+                <div className='w-50 h-50 spinner'></div>
+            </div>
+        )}
+        <section className='w-full flex flex-col space-y-[20vh] z-0'>
             <section className='w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
                     <GoogleMap width={window.innerWidth} height={window.innerHeight} searchAreas={searchAreas} onMapClick={handleMapClick} />
@@ -380,16 +420,16 @@ function Home() {
                     </div>
                 </div>      
             </section>
-            <section className='w-full min-h-screen'>
-                <div className='mx-auto w-4/5 flex flex-col border border-black items-center min-h-[80vh]'>
-                    <div className='flex items-center justify-center h-20 w-full border border-black'>
-                        <p>Search Results</p>
+            <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
+                <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh] bg-white custom-shadow'>
+                    <div className='flex items-center justify-center h-20 w-full'>
+                        <p className='font-bold text-sm tracking-wider'>SEARCH RESULTS</p>
                     </div>
-                    <div className='flex flex-col w-full space-y-2'>
+                    <div className='flex flex-col w-full space-y-3 p-4'>
                         {placesResponse.map((placesObject, index) => (
-                            <div key={index}>
+                            <div key={index} className='space-y-3'>
                                 {placesObject.places.map((place) => (
-                                    <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0' key={place.id}>
+                                    <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-gray-100 rounded custom-shadow-1' key={place.id}>
                                         <div className='flex px-4 items-center'>
                                             <p>{overallIndex += 1}</p>
                                         </div>
