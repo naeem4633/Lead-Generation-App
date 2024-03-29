@@ -420,7 +420,7 @@ function Home() {
                     </div>
                 </div>      
             </section>
-            <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
+            <section className='w-full bg-gray-100 py-10 tracking-wide custom-shadow-2'>
                 <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh] bg-white custom-shadow'>
                     <div className='flex items-center justify-center h-20 w-full'>
                         <p className='font-bold text-sm tracking-wider'>SEARCH RESULTS</p>
@@ -482,8 +482,10 @@ function Home() {
                         ))}
                     </div>
                 </div>
-                <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-40 h-10 bg-gray-600 rounded cursor-pointer text-white'>
-                    <p>Save results.</p>
+                <div className='mx-auto w-4/5 flex items-center justify-end py-4'>
+                    <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-40 h-10 bg-gray-600 rounded cursor-pointer text-white'>
+                        <p>Save results.</p>
+                    </div>
                 </div>
             </section>
         </section>

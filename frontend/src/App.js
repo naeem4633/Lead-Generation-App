@@ -1,17 +1,37 @@
-import {React, useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
 import { samplePlaceData } from './samplePlaceData';
+import LandingPage from './pages/LandingPage';
+import SavedPlaces from './pages/SavedPlaces';
+import axios from 'axios';
 
 function App() {
-  const [placesResponse, setPlacesResponse] = useState([]);
-  
-  useEffect(() => {
-    console.log('Places:', placesResponse);
-  }, [placesResponse]);
+  const [savedPlaces, setSavedPlaces] = useState([]);
 
+  useEffect(() => {
+    const fetchSavedPlaces = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/places');
+        if (response.status === 200) {
+          setSavedPlaces(response.data);
+        } else {
+          console.error('Failed to fetch saved places');
+        }
+      } catch (error) {
+        console.error('Error fetching saved places:', error);
+      }
+    };
+
+    fetchSavedPlaces();
+    console.log("saved places" + savedPlaces)
+  }, []);
+
+  useEffect(() => {
+    console.log("saved places", savedPlaces);
+  }, [savedPlaces]);
 
   return (
     <Router>
@@ -19,8 +39,10 @@ function App() {
         {/* <Header /> */}
         <div className="app-body">
           <Routes>
-            <Route path="/" element={<Home placesResponse={placesResponse} setPlacesResponse={setPlacesResponse} />} />
-            <Route path="/search-results" element={<SearchResults placesResponse={placesResponse} setPlacesResponse={setPlacesResponse} />} />
+            <Route path="/" element={<LandingPage savedPlaces={savedPlaces}/>} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/search-results" element={<SearchResults />} />
+            <Route path="/saved-places" element={<SavedPlaces savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
           </Routes>
         </div>
       </div>
