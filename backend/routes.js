@@ -4,6 +4,7 @@ const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, ge
 const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi} = require('./controllers/placeController.js');
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
+const {getApiKey} = require('./controllers/apiKeyController');
 
 router.post('/google-api', async (req, res) => {
   try {
@@ -57,5 +58,7 @@ router.get('/leads/:id', getLead);
 router.get('/leads', getAllLeads);
 router.put('/leads/:id', updateLead);
 router.delete('/leads/:id', deleteLead);
+
+router.get('/api-key', getApiKey);
 
 module.exports = router;

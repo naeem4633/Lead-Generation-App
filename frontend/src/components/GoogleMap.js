@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
 function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
+    
   const handleMapClick = (mapProps, map, clickEvent) => {
       const { latLng } = clickEvent;
       const latitude = latLng.lat().toFixed(4);

@@ -33,7 +33,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces}) => {
                                 <p>{overallIndex += 1}</p>
                             </div>
                             <div className='w-1/2 flex flex-col items-start'>
-                                <p className='p-2 font-semibold'>{place.displayName.text}</p>
+                                <p className='p-2 font-semibold'>{place.displayName}</p>
                                 <div className='p-2 flex space-x-2 justify-center items-center text-sm'>
                                     <div className='flex justify-center items-center space-x-2'>
                                         <img className='w-4 h-4 select-none' src='../static/images/star.png' alt=''/>

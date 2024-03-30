@@ -7,10 +7,12 @@ import { samplePlaceData } from './samplePlaceData';
 import LandingPage from './pages/LandingPage';
 import SavedPlaces from './pages/SavedPlaces';
 import axios from 'axios';
+import Signup from './pages/Signup';
+import Login from './pages/Login';
 
 function App() {
   const [savedPlaces, setSavedPlaces] = useState([]);
-
+  
   useEffect(() => {
     const fetchSavedPlaces = async () => {
       try {
@@ -26,7 +28,6 @@ function App() {
     };
 
     fetchSavedPlaces();
-    console.log("saved places" + savedPlaces)
   }, []);
 
   useEffect(() => {
@@ -40,6 +41,8 @@ function App() {
         <div className="app-body">
           <Routes>
             <Route path="/" element={<LandingPage savedPlaces={savedPlaces}/>} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/home" element={<Home />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
