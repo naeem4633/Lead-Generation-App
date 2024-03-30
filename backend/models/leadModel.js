@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema({
+    user_id: { type: mongoose.Schema.Types.String, ref: 'User' },
     placeId: { type: mongoose.Schema.Types.String, ref: 'Place', required: true },
     issue: { type: String, required: true },
     contactedVia: { type: String, required: false },

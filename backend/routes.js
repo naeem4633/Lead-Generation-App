@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, getMultipleNearbyPlacesDefault} = require('./controllers/placesAPIController.js');
-const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi} = require('./controllers/placeController.js');
-const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas} = require('./controllers/searchAreaController');
-const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead} = require('./controllers/leadController');
+const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, getMultipleNearbyPlacesDefault } = require('./controllers/placesAPIController.js');
+const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi, getPlacesByUserId} = require('./controllers/placeController.js');
+const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId} = require('./controllers/searchAreaController');
+const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId} = require('./controllers/leadController');
 const {getApiKey} = require('./controllers/apiKeyController');
 
 router.post('/google-api', async (req, res) => {
@@ -36,6 +36,7 @@ router.get('/places/:id', getPlace)
 router.get('/places', getAllPlaces)
 router.delete('/places/:id', deletePlace)
 router.put('/places/:id', updatePlace)
+router.get('/places/by-user/:user_id', getPlacesByUserId)
 
 // Routes for search areas
 router.post('/searchArea', addSearchAreaFromFrontend);
@@ -50,6 +51,7 @@ router.get('/searchAreas/:id', getSearchAreaById);
 router.put('/searchAreas/:id', updateSearchArea);
 router.delete('/searchAreas/:id', deleteSearchArea);
 router.delete('/searchAreasDeleteAll/', deleteAllSearchAreas);
+router.get('/searchAreas/by-user/:user_id', getSearchAreasByUserId);
 
 // Routes for leads 
 router.post('/lead', createLead);
@@ -58,6 +60,7 @@ router.get('/leads/:id', getLead);
 router.get('/leads', getAllLeads);
 router.put('/leads/:id', updateLead);
 router.delete('/leads/:id', deleteLead);
+router.get('/leads/by-user/:user_id', getLeadsByUserId);
 
 router.get('/api-key', getApiKey);
 

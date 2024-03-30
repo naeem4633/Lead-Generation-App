@@ -3,8 +3,8 @@ const SearchArea = require("../models/searchAreaModel");
 // Add a single search area
 const addSearchArea = async (req, res) => {
     try {
-        const { latitude, longitude, radius } = req.body;
-        const searchArea = new SearchArea({ latitude, longitude, radius });
+        const { user_id, latitude, longitude, radius } = req.body;
+        const searchArea = new SearchArea({ user_id, latitude, longitude, radius });
         await searchArea.save();
         res.status(201).json(searchArea);
     } catch (error) {
@@ -38,9 +38,9 @@ const addMultipleSearchAreas = async (req, res) => {
 // Add a single search area from frontend
 const addSearchAreaFromFrontend = async (req, res) => {
     try {
-        const { marker, radius } = req.body;
+        const { marker, radius, user_id } = req.body;
         const { lat, lng } = marker;
-        const searchArea = new SearchArea({ latitude: lat, longitude: lng, radius });
+        const searchArea = new SearchArea({ user_id, latitude: lat, longitude: lng, radius });
         await searchArea.save();
         res.status(201).json(searchArea);
     } catch (error) {
@@ -53,6 +53,7 @@ const addSearchAreaFromFrontend = async (req, res) => {
 const addMultipleSearchAreasFromFrontend = async (req, res) => {
     try {
         const searchAreas = req.body.map(area => ({
+            user_id: area.user_id,
             latitude: area.marker.lat,
             longitude: area.marker.lng,
             radius: area.radius
@@ -65,6 +66,7 @@ const addMultipleSearchAreasFromFrontend = async (req, res) => {
         for (const area of searchAreas) {
             // Check if a search area with the same latitude, longitude, and radius already exists
             const existingSearchArea = await SearchArea.findOne({
+                user_id: area.user_id,
                 latitude: area.latitude,
                 longitude: area.longitude,
                 radius: area.radius
@@ -153,11 +155,12 @@ const getSearchAreaById = async (req, res) => {
 // Update a search area
 const updateSearchArea = async (req, res) => {
     try {
-        const { latitude, longitude, radius } = req.body;
+        const { user_id, latitude, longitude, radius } = req.body;
         const searchArea = await SearchArea.findById(req.params.id);
         if (!searchArea) {
             return res.status(404).json({ message: 'Search area not found' });
         }
+        searchArea.user_id = user_id;
         searchArea.latitude = latitude;
         searchArea.longitude = longitude;
         searchArea.radius = radius;
@@ -182,6 +185,20 @@ const deleteSearchArea = async (req, res) => {
     }
 };
 
+const getSearchAreasByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const searchAreas = await SearchArea.find({ user_id });
+        if (searchAreas.length === 0) {
+            return res.status(404).json({ message: 'No search areas found for user' });
+        }
+        res.json({ searchAreas });
+    } catch (error) {
+        console.error('Error fetching search areas by user ID:', error);
+        res.status(500).json({ error: 'Error fetching search areas by user ID' });
+    }
+};
+
 module.exports = {
     addSearchArea,
     addMultipleSearchAreas,
@@ -194,5 +211,6 @@ module.exports = {
     getLast50SearchAreas,
     getLast10SearchAreas,
     getLast100SearchAreas,
-    deleteAllSearchAreas
+    deleteAllSearchAreas,
+    getSearchAreasByUserId
 };

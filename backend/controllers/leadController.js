@@ -76,6 +76,21 @@ const deleteLead = async (req, res) => {
     }
 };
 
+const getLeadsByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const leads = await Lead.find({ user_id });
+        if (leads.length === 0) {
+            return res.status(404).json({ message: 'No leads found for user' });
+        }
+        res.json({ leads });
+    } catch (error) {
+        console.error('Error fetching leads by user ID:', error);
+        res.status(500).json({ error: 'Error fetching leads by user ID' });
+    }
+};
+
+
 module.exports = {
     createLead,
     createMultipleLeads,
@@ -83,4 +98,5 @@ module.exports = {
     getAllLeads,
     updateLead,
     deleteLead,
+    getLeadsByUserId,
 };

@@ -9,7 +9,8 @@ const placeSchema = new mongoose.Schema({
     googleMapsUri: { type: String, default: '' },
     businessStatus: { type: String, default: '' },
     rating: { type: Number, default: 0 },
-    userRatingCount: { type: Number, default: 0 }
+    userRatingCount: { type: Number, default: 0 },
+    user_id: { type: String, default: '' }
 });
 
 const Place = mongoose.model('Place', placeSchema);

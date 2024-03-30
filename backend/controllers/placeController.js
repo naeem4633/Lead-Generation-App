@@ -124,6 +124,20 @@ const updatePlace = async (req, res) => {
     }
   };
   
+  const getPlacesByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const places = await Place.find({ user_id });
+        if (places.length === 0) {
+            return res.status(404).json({ message: 'No places found for user' });
+        }
+        res.json({ places });
+    } catch (error) {
+        console.error('Error fetching places by user ID:', error);
+        res.status(500).json({ error: 'Error fetching places by user ID' });
+    }
+};
+
 
 module.exports = {
   createPlace,
@@ -133,5 +147,6 @@ module.exports = {
   getAllPlaces,
   createMultiplePlaces,
   createPlaceFromGoogleApi,
-  createMultiplePlacesFromGoogleApi
+  createMultiplePlacesFromGoogleApi,
+  getPlacesByUserId
 };
