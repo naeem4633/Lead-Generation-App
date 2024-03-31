@@ -12,17 +12,23 @@ import Login from './pages/Login';
 import { useFirebase } from './context/firebase';
 
 function App() {
+  const [user, setUser] = useState(null);
   const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
-      if (user) {
-        console.log('User:', user);
-      } else {
+      if (!user) {
         console.log('No user is signed in.');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }else{
+        setUser(user);  
+        console.log(`${user.email} is signed in.`);
+        console.log("user in App.js", user)
       }
     });
-
+  
     return unsubscribe;
   }, [firebase]);
 
@@ -32,7 +38,7 @@ function App() {
   useEffect(() => {
     const fetchSavedPlaces = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/places');
+        const response = await axios.get(`http://localhost:5000/api/places/by-user/${user.uid}`);
         if (response.status === 200) {
           setSavedPlaces(response.data);
         } else {
@@ -44,7 +50,7 @@ function App() {
     };
 
     fetchSavedPlaces();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     console.log("saved places", savedPlaces);
@@ -59,7 +65,7 @@ function App() {
             <Route path="/" element={<LandingPage savedPlaces={savedPlaces}/>} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/home" element={<Home user={user} />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
           </Routes>

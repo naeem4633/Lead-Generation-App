@@ -7,8 +7,10 @@ import { Link } from 'react-router-dom';
 import { samplePlaceData } from '../samplePlaceData';
 import CustomRadiusSlider from '../components/CustomRadiusSlider';
 import isValidKeyword from '../keywordValidation';
+import { useFirebase } from '../context/firebase';
 
-function Home() {
+function Home({user}) {
+    const firebase = useFirebase();
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [radius, setRadius] = useState(0);
@@ -21,50 +23,59 @@ function Home() {
     useEffect(() => {
         console.log('Places:', placesResponse);
     }, [placesResponse]);
+    useEffect(() => {
+        console.log('user in home:', user);
+    }, [user]);
 
     useEffect(() => {
     }, [addedSearchAreasCount]);
 
     useEffect(() => {
+        if (!user) return; // Return early if user is null
+    
         // Function to fetch search areas from backend
         const fetchSearchAreas = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/last10SearchAreas');
+                const response = await axios.get(`http://localhost:5000/api/last50SearchAreas/by-user/${user.uid}`);
                 // Map the received data to match the structure of your searchAreas state
                 const mappedData = response.data.map(area => ({
                     id: area._id,
+                    user_id: area.user_id,
                     marker: { lat: area.latitude, lng: area.longitude },
                     radius: area.radius
                 }));
                 setSearchAreas(mappedData);
+                console.log("search areas:", mappedData);
             } catch (error) {
                 console.error('Error fetching search areas:', error);
             }
         };
-
-        // Fetch search areas when component mounts
+    
+        // Fetch search areas when component mounts or when user changes
         fetchSearchAreas();
-    }, []);
+    }, [user]); 
 
-    const handleLast50Click = async () => {
+    const handleLast100Click = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/last50SearchAreas');
+            const response = await axios.get(`http://localhost:5000/api/last100SearchAreas/by-user/${user.uid}`);
             const mappedData = response.data.map(area => ({
                 id: area._id,
+                user_id: area.user_id,
                 marker: { lat: area.latitude, lng: area.longitude },
                 radius: area.radius
             }));
             setSearchAreas(mappedData);
         } catch (error) {
-            console.error('Error fetching last 50 search areas:', error);
+            console.error('Error fetching last 100 search areas:', error);
         }
     };
 
-    const handleLast100Click = async () => {
+    const handleLastAllClick = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/last100SearchAreas');
+            const response = await axios.get(`http://localhost:5000/api/searchAreas/by-user/${user.uid}`);
             const mappedData = response.data.map(area => ({
                 id: area._id,
+                user_id: area.user_id,
                 marker: { lat: area.latitude, lng: area.longitude },
                 radius: area.radius
             }));
@@ -109,28 +120,34 @@ function Home() {
                 newMarker = lastSearchArea.marker;
         }
 
-        const updatedSearchAreas = [...searchAreas, { marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
+        const updatedSearchAreas = [...searchAreas, { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
         setSearchAreas(updatedSearchAreas);
         setaddedSearchAreasCount(prevCount => prevCount + 1);
     };
 
     const handleAddSearchArea = () => {
+        const user_id = user.uid;
         const latitude = parseFloat(document.getElementById('latitude').value);
         const longitude = parseFloat(document.getElementById('longitude').value);
         const radius = parseFloat(document.getElementById('radius').value);
     
         if (!isNaN(latitude) && !isNaN(longitude) && !isNaN(radius)) {
-            const isDuplicate = searchAreas.some(area => area.marker.lat === latitude && area.marker.lng === longitude && area.radius === radius);
+            const isDuplicate = searchAreas.some(area => 
+                area.marker.lat === latitude && 
+                area.marker.lng === longitude && 
+                area.radius === radius &&
+                area.user_id === user_id
+            );
             
             if (!isDuplicate) {
-                const newSearchArea = { marker: { lat: latitude, lng: longitude }, radius: radius };
+                const newSearchArea = { user_id: user_id, marker: { lat: latitude, lng: longitude }, radius: radius };
                 setSearchAreas([...searchAreas, newSearchArea]);
                 setaddedSearchAreasCount(prevCount => prevCount + 1);
             } else {
                 console.error('Duplicate search area');
             }
         }
-    };    
+    };
 
     const handleDeleteLastArea = async () => {
         const updatedSearchAreas = [...searchAreas];
@@ -173,7 +190,8 @@ function Home() {
                 googleMapsUri: place.googleMapsUri || '',
                 businessStatus: place.businessStatus || '',
                 rating: place.rating || 0,
-                userRatingCount: place.userRatingCount || 0
+                userRatingCount: place.userRatingCount || 0,
+                user_id : user.uid
               };
               placesToSave.push(placeToSave);
             });
@@ -398,9 +416,8 @@ function Home() {
                         <div className='h-1/6 w-full flex flex-col justify-center items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
                             <p>Show Recent Search Areas :</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
-                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast50Click}>50</button>
                                 <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>All</button>
+                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>

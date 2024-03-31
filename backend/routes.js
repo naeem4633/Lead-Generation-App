@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, getMultipleNearbyPlacesDefault } = require('./controllers/placesAPIController.js');
 const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi, getPlacesByUserId} = require('./controllers/placeController.js');
-const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId} = require('./controllers/searchAreaController');
+const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId, getLast50SearchAreasByUserId, getLast100SearchAreasByUserId} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId} = require('./controllers/leadController');
 const {getApiKey} = require('./controllers/apiKeyController');
 
@@ -52,6 +52,8 @@ router.put('/searchAreas/:id', updateSearchArea);
 router.delete('/searchAreas/:id', deleteSearchArea);
 router.delete('/searchAreasDeleteAll/', deleteAllSearchAreas);
 router.get('/searchAreas/by-user/:user_id', getSearchAreasByUserId);
+router.get('/last50SearchAreas/by-user/:user_id', getSearchAreasByUserId);
+router.get('/last100SearchAreas/by-user/:user_id', getSearchAreasByUserId);
 
 // Routes for leads 
 router.post('/lead', createLead);

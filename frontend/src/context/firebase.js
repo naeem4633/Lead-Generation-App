@@ -141,10 +141,14 @@
             }
         };
 
+        const getCurrentUser = () => {
+            return firebaseAuth.currentUser;
+        };
+
         const putData = (key, data) => set(ref(database, key), data);
 
     return (
-        <FirebaseContext.Provider value={{signupUserWithEmailAndPassword, signinWithGoogle,  signinUser, signInAnonymous, convertAnonymousToPermanentEmailPassword, convertAnonymousToPermanentGoogle, getAuth }}>
+        <FirebaseContext.Provider value={{signupUserWithEmailAndPassword, signinWithGoogle,  signinUser, signInAnonymous, convertAnonymousToPermanentEmailPassword, convertAnonymousToPermanentGoogle, getAuth, getCurrentUser }}>
           {props.children}
         </FirebaseContext.Provider>
     );

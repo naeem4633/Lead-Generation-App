@@ -192,10 +192,38 @@ const getSearchAreasByUserId = async (req, res) => {
         if (searchAreas.length === 0) {
             return res.status(404).json({ message: 'No search areas found for user' });
         }
-        res.json({ searchAreas });
+        res.json(searchAreas);
     } catch (error) {
         console.error('Error fetching search areas by user ID:', error);
         res.status(500).json({ error: 'Error fetching search areas by user ID' });
+    }
+};
+
+// Get the last 50 search areas by user id
+const getLast50SearchAreasByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const searchAreas = await SearchArea.find({ user_id }).sort({ _id: -1 }).limit(50);
+        if (searchAreas.length === 0) {
+            return res.status(404).json({ message: 'No search areas found for user' });
+        }
+        res.json(searchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get the last 100 search areas by user id
+const getLast100SearchAreasByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const searchAreas = await SearchArea.find({ user_id }).sort({ _id: -1 }).limit(100);
+        if (searchAreas.length === 0) {
+            return res.status(404).json({ message: 'No search areas found for user' });
+        }
+        res.json(searchAreas);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -212,5 +240,7 @@ module.exports = {
     getLast10SearchAreas,
     getLast100SearchAreas,
     deleteAllSearchAreas,
-    getSearchAreasByUserId
+    getSearchAreasByUserId,
+    getLast50SearchAreasByUserId,
+    getLast100SearchAreasByUserId
 };
