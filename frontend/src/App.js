@@ -9,9 +9,25 @@ import SavedPlaces from './pages/SavedPlaces';
 import axios from 'axios';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import { useFirebase } from './context/firebase';
 
 function App() {
+  const firebase = useFirebase();
+
+  useEffect(() => {
+    const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
+      if (user) {
+        console.log('User:', user);
+      } else {
+        console.log('No user is signed in.');
+      }
+    });
+
+    return unsubscribe;
+  }, [firebase]);
+
   const [savedPlaces, setSavedPlaces] = useState([]);
+
   
   useEffect(() => {
     const fetchSavedPlaces = async () => {

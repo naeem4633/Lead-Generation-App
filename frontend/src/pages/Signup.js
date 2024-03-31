@@ -2,15 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../authorization.css'
 import { useFirebase } from '../context/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithCredential, EmailAuthProvider, linkWithPopup } from 'firebase/auth';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const firebase = useFirebase();
+    const [user, setUser] = useState(null);
 
-    const handleSignup = async (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
+            if (user) {
+                setUser(user);
+            } else {
+                setUser(null);
+            }
+        });
+
+        return unsubscribe;
+    }, [firebase]);
+
+    const convertAnonymousToPermanentEmailPassword = async () => {
+      try {
+          await firebase.convertAnonymousToPermanentEmailPassword(email, password);
+          console.log('Anonymous user converted to permanent with email and password');
+      } catch (error) {
+          console.error('Error converting anonymous user to permanent:', error.message);
+      }
+  };
+
+  const convertAnonymousToPermanentGoogle = async () => {
+    try {
+        // Check if the user is anonymous before proceeding
+        if (user && user.isAnonymous) {
+            console.log("anon user" , user)
+            await firebase.convertAnonymousToPermanentGoogle();
+            console.log('Anonymous user converted to permanent with Google');
+        } else {
+            console.log('User is not anonymous. Cannot upgrade.');
+        }
+    } catch (error) {
+        console.log('Error converting anonymous user to permanent with Google:', error);
+    }
+};
+
+    const handleSignup = async () => {
         try {
           await firebase.signupUserWithEmailAndPassword(email, password);
           // Handle successful signup
@@ -21,8 +58,7 @@ const Signup = () => {
         }
       };
       
-      const handleSigninWithGoogle = async (e) => {
-        e.preventDefault(); 
+      const handleSigninWithGoogle = async () => {
         try {
           await firebase.signinWithGoogle();
           // Handle successful signup
@@ -35,7 +71,7 @@ const Signup = () => {
 
   return (
     <section className='w-full relative tracking-wide min-h-[80vh] flex justify-center items-center'>
-        <form onSubmit={handleSignup} className="authorization-form">
+        <form className="authorization-form">
 
           <div className="authorization-flex-column">
             <label>Email </label>
@@ -54,7 +90,7 @@ const Signup = () => {
             <svg viewBox="0 0 576 512" height="1em" xmlns="http://www.w3.org/2000/svg"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"></path></svg>
           </div>
         
-        <button className="authorization-button-submit transition-all duration-200">Sign Up</button>
+        <button type='button' className="authorization-button-submit transition-all duration-200" onClick={user && user.isAnonymous ? convertAnonymousToPermanentEmailPassword : handleSignup}>Sign Up</button>
         <p className="authorization-p">Already have an account? 
         <span className="authorization-span"><Link to={'/login'}>Sign In</Link></span>
 
@@ -62,7 +98,7 @@ const Signup = () => {
 
             <div className='flex flex-col'>
               <div className="authorization-flex-row">
-                <button className="authorization-btn google" onClick={handleSigninWithGoogle}>
+                <button type='button' className="authorization-btn google" onClick={user && user.isAnonymous ? convertAnonymousToPermanentGoogle : handleSigninWithGoogle}>
                 <svg version="1.1" width="20" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xmlSpace="preserve">
                   <path style={{ fill: '#FBBB00' }} d="M113.47,309.408L95.648,375.94l-65.139,1.378C11.042,341.211,0,299.9,0,256c0-42.451,10.324-82.483,28.624-117.732h0.014l57.992,10.632l25.404,57.644c-5.317,15.501-8.215,32.141-8.215,49.456C103.821,274.792,107.225,292.797,113.47,309.408z"></path>
                   <path style={{ fill: '#518EF8' }} d="M507.527,208.176C510.467,223.662,512,239.655,512,256c0,18.328-1.927,36.206-5.598,53.451c-12.462,58.683-45.025,109.925-90.134,146.187l-0.014-0.014l-73.044-3.727l-10.338-64.535c29.932-17.554,53.324-45.025,65.646-77.911h-136.89V208.176h138.887L507.527,208.176L507.527,208.176z"></path>

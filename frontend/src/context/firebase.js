@@ -1,6 +1,6 @@
     import { createContext, useContext } from 'react';
     import { initializeApp } from 'firebase/app';
-    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithCredential, EmailAuthProvider, linkWithPopup } from 'firebase/auth';
     import { getDatabase, set, ref } from 'firebase/database';
     import bcrypt from 'bcryptjs';
 
@@ -18,12 +18,16 @@
     const firebaseApp = initializeApp(firebaseConfig);
     const firebaseAuth = getAuth(firebaseApp);
     const firebaseGoogleAuthProvider = new GoogleAuthProvider();
+    const firebaseEmailAuthProvider = new EmailAuthProvider();
     const database = getDatabase(firebaseApp);
 
     const FirebaseContext = createContext(null);
     export const useFirebase = () => useContext(FirebaseContext);
 
     export const FirebaseProvider = (props) => {
+        const getAuth = () => {
+            return firebaseAuth;
+        }
         const signupUserWithEmailAndPassword = (email, password, displayName) => {
             return createUserWithEmailAndPassword(firebaseAuth, email, password)
             .then((userCredential) => {
@@ -96,10 +100,51 @@
                 });
         };
 
-    const putData = (key, data) => set(ref(database, key), data);
+        // Function to sign in anonymously
+        const signInAnonymous = () => {
+            signInAnonymously(firebaseAuth)
+            .then(() => {
+                console.log( 'Successfully created a new anonymous account.', firebaseAuth.currentUser );
+            })
+            .catch((error) => {
+                // Handle error
+                console.error("Error signing in anonymously:", error);
+            });
+        };
+        
+        const convertAnonymousToPermanentEmailPassword = (email, password) => {
+            const credential = EmailAuthProvider.credential(email, password);
+            return linkWithCredential(firebaseAuth.currentUser, credential)
+              .then((usercred) => {
+                const user = usercred.user;
+                console.log("Anonymous account successfully upgraded", user);
+                return user;
+              }).catch((error) => {
+                console.log("Error upgrading anonymous account", error);
+                throw error;
+              });
+          };
+
+          const convertAnonymousToPermanentGoogle = async () => {
+            try {
+                const currentUser = firebaseAuth.currentUser;
+                    const result = await signInWithPopup(firebaseAuth, firebaseGoogleAuthProvider);
+                    const googleCredential = GoogleAuthProvider.credentialFromResult(result);
+                    if (googleCredential) {
+                        await linkWithCredential(currentUser, googleCredential);
+                        console.log('Anonymous account successfully upgraded with Google');
+                    } else {
+                        throw new Error('Failed to get Google credential from result');
+                    }
+                }catch (error) {
+                console.log('Error upgrading anonymous account with Google:', error);
+            }
+        };
+
+        const putData = (key, data) => set(ref(database, key), data);
 
     return (
-        <FirebaseContext.Provider value={{ signupUserWithEmailAndPassword, signinWithGoogle,  signinUser }}>
+        <FirebaseContext.Provider value={{signupUserWithEmailAndPassword, signinWithGoogle,  signinUser, signInAnonymous, convertAnonymousToPermanentEmailPassword, convertAnonymousToPermanentGoogle, getAuth }}>
           {props.children}
         </FirebaseContext.Provider>
     );
