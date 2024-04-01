@@ -37,6 +37,9 @@ function App() {
   
   useEffect(() => {
     const fetchSavedPlaces = async () => {
+      if (!user) {
+        return;
+      }
       try {
         const response = await axios.get(`http://localhost:5000/api/places/by-user/${user.uid}`);
         if (response.status === 200) {
@@ -67,7 +70,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/home" element={<Home user={user} />} />
             <Route path="/search-results" element={<SearchResults />} />
-            <Route path="/saved-places" element={<SavedPlaces savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
+            <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
           </Routes>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
 function GoogleMap({ google, width, height, searchAreas, onMapClick }) {

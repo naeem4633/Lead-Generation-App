@@ -1,7 +1,19 @@
 import React from 'react'
 import axios from 'axios';
+import { useFirebase } from '../context/firebase';
 
-const SavedPlaces = ({savedPlaces, setSavedPlaces}) => {
+const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
+    const firebase = useFirebase();
+
+    const handleLogoutClick = async () => {
+        try {
+            await firebase.getAuth().signOut();
+            console.log("User signed out successfully");
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    };
+
     let overallIndex = 0;
 
     const handleDeleteClick = async (id) => {
@@ -21,6 +33,17 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces}) => {
 
   return (
     <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
+        {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                    <div className='w-full rounded p-2'>
+                        <div className='flex flex-row justify-end items-center space-x-4 text-gray-200'>
+                            <img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />
+                            <p>{user.displayName || user.email}</p>
+                            <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
+                                <img src='../static/images/logout.png' className='w-6 h-6'></img>
+                            </div>
+                        </div>
+                    </div>
+                </div>}
         <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh] bg-white custom-shadow'>
             <div className='flex items-center justify-center h-20 w-full'>
                 <p className='font-bold text-sm tracking-wider'>SAVED PLACES</p>

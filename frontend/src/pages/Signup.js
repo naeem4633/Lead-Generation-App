@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import '../authorization.css'
 import { useFirebase } from '../context/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithCredential, EmailAuthProvider, linkWithPopup } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
+    const navigate = useNavigate();
     const firebase = useFirebase();
     const [user, setUser] = useState(null);
 
@@ -27,7 +28,7 @@ const Signup = () => {
       try {
           await firebase.convertAnonymousToPermanentEmailPassword(email, password);
           console.log('Anonymous user converted to permanent with email and password');
-          window.location.href = '/';
+          navigate('/');
       } catch (error) {
           console.error('Error converting anonymous user to permanent:', error.message);
       }
@@ -53,7 +54,7 @@ const Signup = () => {
           await firebase.signupUserWithEmailAndPassword(email, password);
           // Handle successful signup
           console.log('Signup successful');
-          window.location.href = '/';
+          navigate('/');
         } catch (error) {
           // Handle signup error
           console.error('Error signing up:', error.message);
@@ -65,7 +66,7 @@ const Signup = () => {
           await firebase.signinWithGoogle();
           // Handle successful signup
           console.log('Signup successful');
-          window.location.href = '/';
+          navigate('/');
         } catch (error) {
           // Handle signup error
           console.error('Error signing up:', error.message);
