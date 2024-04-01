@@ -46,6 +46,10 @@
                 putData(`users/${userId}`, userData);
                 return userCredential.user;
             })
+            .then((user) => {
+                // Perform sign-in after sign-up
+                return signInWithEmailAndPassword(firebaseAuth, email, password);
+            })
             .catch((error) => {
                 console.error('Error signing up:', error);
                 throw error;
@@ -90,7 +94,7 @@
         };
 
         const signinUser = (email, password) => {
-            return signInWithEmailAndPassword(firebaseAuth, email, password) // Use the provided signInWithEmailAndPassword method
+            return signInWithEmailAndPassword(firebaseAuth, email, password)
                 .then((userCredential) => {
                     return userCredential.user;
                 })

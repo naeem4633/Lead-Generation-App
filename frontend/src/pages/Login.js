@@ -15,6 +15,7 @@ const Login = () => {
         await firebase.signinUser(email, password);
         // Handle successful login
         console.log('Login successful');
+        window.location.href = '/';
       } catch (error) {
         // Handle login error
         console.error('Error logging in:', error.message);
@@ -27,6 +28,7 @@ const Login = () => {
         await firebase.signinWithGoogle();
         // Handle successful login
         console.log('Login successful');
+        window.location.href = '/';
       } catch (error) {
         // Handle login error
         console.error('Error logging in with Google:', error.message);
@@ -39,6 +41,7 @@ const Login = () => {
         await firebase.signInAnonymous();
         // Handle successful login
         console.log('Login successful');
+        window.location.href = '/';
       } catch (error) {
         // Handle login error
         console.error('Error logging in with Google:', error.message);

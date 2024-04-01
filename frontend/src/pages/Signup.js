@@ -27,6 +27,7 @@ const Signup = () => {
       try {
           await firebase.convertAnonymousToPermanentEmailPassword(email, password);
           console.log('Anonymous user converted to permanent with email and password');
+          window.location.href = '/';
       } catch (error) {
           console.error('Error converting anonymous user to permanent:', error.message);
       }
@@ -52,6 +53,7 @@ const Signup = () => {
           await firebase.signupUserWithEmailAndPassword(email, password);
           // Handle successful signup
           console.log('Signup successful');
+          window.location.href = '/';
         } catch (error) {
           // Handle signup error
           console.error('Error signing up:', error.message);
@@ -63,6 +65,7 @@ const Signup = () => {
           await firebase.signinWithGoogle();
           // Handle successful signup
           console.log('Signup successful');
+          window.location.href = '/';
         } catch (error) {
           // Handle signup error
           console.error('Error signing up:', error.message);

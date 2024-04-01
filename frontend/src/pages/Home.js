@@ -332,6 +332,15 @@ function Home({user}) {
         }
     };
 
+    const handleLogoutClick = async () => {
+        try {
+            await firebase.getAuth().signOut();
+            console.log("User signed out successfully");
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    };
+
     const smoothScrollTo = (endX, endY, duration) => {
         const startX = window.scrollX;
         const startY = window.scrollY;
@@ -368,14 +377,17 @@ function Home({user}) {
                 <div className="w-full">
                     <GoogleMap width={window.innerWidth} height={window.innerHeight} searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
-                <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
-                    <div className='w-full rounded p-2'>
-                        <div className='flex flex-row justify-end items-center space-x-4 text-gray-200'>
-                            <img src={user.photoURL} className='w-8 h-8 rounded-full' alt=''/>
-                            <p>{user.displayName || user.email}</p>
-                        </div>
-                    </div>
-                </div>
+                {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                            <div className='w-full rounded p-2'>
+                                <div className='flex flex-row justify-end items-center space-x-4 text-gray-200'>
+                                    <img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />
+                                    <p>{user.displayName || user.email}</p>
+                                    <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
+                                        <img src='../static/images/logout.png' className='w-6 h-6'></img>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>}
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 px-2 py-4 custom-shadow bg-gray-50 rounded-md'>
