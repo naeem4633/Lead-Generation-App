@@ -1,47 +1,6 @@
 const axios = require('axios');
 const apiKey = process.env.API_KEY;
-
-// Function to process an array of searchArea objects and fetch nearby places for each
-async function getMultipleNearbyPlacesDefault(req, res) {
-  try {
-    // Ensure searchAreas is defined and is an array
-    const searchAreas = req.body;
-    if (!searchAreas || !Array.isArray(searchAreas)) {
-      return res.status(400).json({ error: 'Search areas array is missing or invalid' });
-    }
-
-    // Array to store results
-    const nearbyPlaces = [];
-
-    // Process each search area
-    for (const area of searchAreas) {
-      const { marker, radius } = area;
-      const { lat, lng } = marker;
-
-      const apiKey = process.env.API_KEY;
-      if (!apiKey) {
-        throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
-      }
-
-      // Call fetchNearbyPlacesFromGoogle function for each search area
-      let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
-
-      // Check if the response is empty (contains no places)
-      if (Object.keys(nearbyPlace).length === 0) {
-        nearbyPlace = { places: [] }; // Adjust the response format to match the format of other responses
-      }
-
-      nearbyPlaces.push(nearbyPlace);
-    }
-
-    // Send the array of nearby places as the response
-    res.json(nearbyPlaces);
-  } catch (error) {
-    // Handle errors
-    console.error('Error fetching nearby places:', error);
-    res.status(500).json({ error: 'Error fetching nearby places' });
-  }
-}
+const { createMultipleSearchAreaResponseCounts } = require('./searchAreaResponseCountController');
 
 // Function to process an array of searchArea objects and fetch nearby places for each
 async function getMultipleNearbyPlaces(req, res) {
@@ -55,6 +14,7 @@ async function getMultipleNearbyPlaces(req, res) {
 
     // Array to store results
     const nearbyPlaces = [];
+    const searchAreaResponseCounts = [];
 
     // Process each search area
     for (const area of searchAreas) {
@@ -74,11 +34,27 @@ async function getMultipleNearbyPlaces(req, res) {
         nearbyPlace = { places: [] }; // Adjust the response format to match the format of other responses
       }
 
+      const responseCount = nearbyPlace.places.length;
+      const searchAreaResponseCount = {
+        latitude: lat,
+        longitude: lng,
+        radius: radius,
+        included_types: keywordArray,
+        response_count: responseCount
+      };
+      searchAreaResponseCounts.push(searchAreaResponseCount);
+
       nearbyPlaces.push(nearbyPlace);
     }
+    
+    // Append searchAreaResponseCounts to the response object
+    const responseObject = {
+      nearbyPlaces: nearbyPlaces,
+      searchAreaResponseCounts: searchAreaResponseCounts
+    };
 
-    // Send the array of nearby places as the response
-    res.json(nearbyPlaces);
+    // Send the response to the client
+    res.json(responseObject);
   } catch (error) {
     // Handle errors
     console.error('Error fetching nearby places:', error);
@@ -224,5 +200,4 @@ module.exports = {
   getNearbyPlaces,
   fetchNearbyPlacesFromGoogle,
   getMultipleNearbyPlaces,
-  getMultipleNearbyPlacesDefault
 };

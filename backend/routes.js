@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces, getMultipleNearbyPlacesDefault } = require('./controllers/placesAPIController.js');
+const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces } = require('./controllers/placesAPIController.js');
 const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi, getPlacesByUserId} = require('./controllers/placeController.js');
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId, getLast50SearchAreasByUserId, getLast100SearchAreasByUserId} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId} = require('./controllers/leadController');
+const {createSearchAreaResponseCount, getAllSearchAreaResponseCounts, getSearchAreaResponseCountById, updateSearchAreaResponseCountById, deleteSearchAreaResponseCountById, deleteAllSearchAreaResponseCounts, createMultipleSearchAreaResponseCounts} = require('./controllers/searchAreaResponseCountController');
 const {getApiKey} = require('./controllers/apiKeyController');
 
 router.post('/google-api', async (req, res) => {
@@ -24,7 +25,6 @@ router.post('/google-api', async (req, res) => {
 
 // Define the route for fetching nearby places
 router.post('/nearby-places', getNearbyPlaces);
-router.post('/multiple-nearby-places-default', getMultipleNearbyPlacesDefault);
 router.post('/multiple-nearby-places', getMultipleNearbyPlaces);
 
 // Place routess
@@ -64,6 +64,16 @@ router.put('/leads/:id', updateLead);
 router.delete('/leads/:id', deleteLead);
 router.get('/leads/by-user/:user_id', getLeadsByUserId);
 
+//Routes for API controller
 router.get('/api-key', getApiKey);
+
+//Routes for Search Area Response Count
+router.post("/searchAreaResponseCount", createSearchAreaResponseCount);
+router.post("/searchAreaResponseCounts", createMultipleSearchAreaResponseCounts);
+router.get("/searchAreaResponseCounts", getAllSearchAreaResponseCounts);
+router.get("/searchAreaResponseCounts/:id", getSearchAreaResponseCountById);
+router.put("/searchAreaResponseCounts/:id", updateSearchAreaResponseCountById);
+router.delete("/searchAreaResponseCounts/:id", deleteSearchAreaResponseCountById);
+router.delete("/searchAreaResponseCountsDeleteAll", deleteAllSearchAreaResponseCounts);
 
 module.exports = router;

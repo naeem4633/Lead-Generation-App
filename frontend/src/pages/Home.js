@@ -305,10 +305,25 @@ function Home({user}) {
                 }
             );
     
-            console.log("nearbyplacesresponse length: " + nearbyPlacesResponse.length);
             console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas));
+            console.log("nearbyplacesresponse : " , nearbyPlacesResponse);
+            console.log("nearbyplacesresponse length: " , nearbyPlacesResponse.data.nearbyPlaces.length);
+            console.log("searcharearesponse counts length: " , nearbyPlacesResponse.data.searchAreaResponseCounts.length);
             setaddedSearchAreasCount(0);
-            setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data]);
+            setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data.nearbyPlaces]);
+
+            //send the seearch area response count objects back to the relevant path for storage
+            try {
+                const searchAreaResponseCounts = nearbyPlacesResponse.data.searchAreaResponseCounts;
+                await axios.post('http://localhost:5000/api/searchAreaResponseCounts', searchAreaResponseCounts, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                console.log('Search area response counts sent successfully.');
+            } catch (error) {
+                console.error('Error sending search area response counts:', error);
+            }
         } catch (error) {
             console.error('Error sending search areas:', error);
         } finally {
