@@ -368,11 +368,19 @@ function Home({user}) {
                 <div className="w-full">
                     <GoogleMap width={window.innerWidth} height={window.innerHeight} searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
+                <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                    <div className='w-full rounded p-2'>
+                        <div className='flex flex-row justify-end items-center space-x-4 text-gray-200'>
+                            <img src={user.photoURL} className='w-8 h-8 rounded-full' alt=''/>
+                            <p>{user.displayName || user.email}</p>
+                        </div>
+                    </div>
+                </div>
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 px-2 py-4 custom-shadow bg-gray-50 rounded-md'>
                             <div className='flex flex-col items-start space-y-2'>
-                                <p>Add search area</p>
+                                <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
                                     <div className='flex justify-center items-center space-x-2'>
                                         <input id="latitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Latitude" />
@@ -381,7 +389,7 @@ function Home({user}) {
                                 </div>
                             </div>
                             <div className='flex flex-col items-start space-y-2'>
-                                <p>Search Radius</p>
+                                <p className='font-semibold text-sm tracking-wide'>RADIUS</p>
                                 <div className='flex flex-col items-center'>
                                     <CustomRadiusSlider setRadius={setRadius}/>
                                 </div>
@@ -393,7 +401,7 @@ function Home({user}) {
                         </div>
                         <div className='h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='w-full flex flex-col space-y-2'>
-                                <p>Add More in direction:</p>
+                                <p className='font-semibold text-sm tracking-wide'>ADD MORE IN DIRECTION:</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
                                     <div className='flex justify-between space-x-1'>
                                         <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northwest')}>
@@ -429,7 +437,7 @@ function Home({user}) {
                             </div>
                         </div>
                         <div className='h-1/6 w-full flex flex-col justify-center items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
-                            <p>Show Recent Search Areas :</p>
+                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT SEARCH AREAS</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
                                 <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>100</button>
                                 <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLastAllClick}>All</button>
@@ -437,7 +445,7 @@ function Home({user}) {
                         </div>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='flex flex-col space-y-2'>
-                                <p>Search Options</p>
+                                <p className='font-semibold text-sm tracking-wide'>SEARCH OPTIONS</p>
                                 <div className='flex flex-col justify-center items-start space-y-2'>  
                                     <input id="keyword" className='border border-black w-28 rounded text-sm p-1' type="text" placeholder="Keyword" />
                                     {invalidKeyword && (
