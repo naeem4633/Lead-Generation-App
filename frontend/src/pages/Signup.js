@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../authorization.css'
 import { useFirebase } from '../context/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithCredential, EmailAuthProvider, linkWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {

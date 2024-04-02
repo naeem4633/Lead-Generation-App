@@ -65,9 +65,9 @@ function App() {
         {/* <Header /> */}
         <div className="app-body">
           <Routes>
-            <Route path="/" element={<LandingPage savedPlaces={savedPlaces}/>} />
+            <Route path="/" element={<LandingPage user={user} savedPlaces={savedPlaces}/>} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login user={user}/>} />
             <Route path="/home" element={<Home user={user} />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />

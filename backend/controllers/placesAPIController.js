@@ -137,65 +137,6 @@ async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius, 
   }
 }
 
-// async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius) {
-//   let results = [];
-//   let nextPageToken = null;
-
-//   do {
-//     const requestData = {
-//       includedTypes: ["gym", "fitness_center"],
-//       excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", "physiotherapist", "sports_complex", "sports_club"],
-//       maxResultCount: 20,
-//       locationRestriction: {
-//         circle: {
-//           center: {
-//             latitude: latitude,
-//             longitude: longitude,
-//           },
-//           radius: radius,
-//         },
-//       },
-//     };
-
-//     if (nextPageToken) {
-//       requestData.pageToken = nextPageToken;
-//     }
-
-//     const config = {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'X-Goog-Api-Key': apiKey,
-//         'X-Goog-FieldMask': [
-//           'places.id',
-//           'places.displayName',
-//           'places.formattedAddress',
-//           'places.businessStatus',
-//           'places.googleMapsUri',
-//           'places.internationalPhoneNumber',
-//           'places.rating',
-//           'places.userRatingCount',
-//           'places.websiteUri'
-//         ]
-//       }
-//     };
-
-//     try {
-//       const response = await axios.post('https://places.googleapis.com/v1/places:searchNearby', requestData, config);
-//       results = results.concat(response.data); // Combine results from all pages
-//       nextPageToken = response.data.nextPageToken; // Check for next page token
-//     } catch (error) {
-//       console.error('Error fetching nearby places:', error);
-//       throw error;
-//     }
-//   } while (nextPageToken);
-
-//   // Display all results (replace with your preferred display logic)
-//   console.log("All nearby places:", results);
-
-//   return results; // Optional: return the complete list of results
-// }
-
-
 module.exports = {
   getNearbyPlaces,
   fetchNearbyPlacesFromGoogle,

@@ -7,22 +7,6 @@ const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, delete
 const {createSearchAreaResponseCount, getAllSearchAreaResponseCounts, getSearchAreaResponseCountById, updateSearchAreaResponseCountById, deleteSearchAreaResponseCountById, deleteAllSearchAreaResponseCounts, createMultipleSearchAreaResponseCounts} = require('./controllers/searchAreaResponseCountController');
 const {getApiKey} = require('./controllers/apiKeyController');
 
-router.post('/google-api', async (req, res) => {
-  try {
-    const { marker, radius } = req.body;
-    const { lat, lng } = marker;
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      throw new Error('API key not found. Please make sure to set the API_KEY environment variable.');
-    }
-    const placesData = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius);
-    res.json(placesData);
-  } catch (error) {
-    console.error('Error fetching nearby places:', error);
-    res.status(500).json({ error: 'Error fetching nearby places' });
-  }
-});
-
 // Define the route for fetching nearby places
 router.post('/nearby-places', getNearbyPlaces);
 router.post('/multiple-nearby-places', getMultipleNearbyPlaces);
