@@ -11,7 +11,9 @@ function Home({user}) {
     const firebase = useFirebase();
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
-    const [radius, setRadius] = useState(0);
+    const [radius, setRadius] = useState(1000);
+    const [latitude, setLatitude] = useState(0);
+    const [longitude, setLongitude] = useState(0);
     const [placesResponse, setPlacesResponse] = useState([]);
     const [invalidKeyword, setInvalidKeyword] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -21,15 +23,20 @@ function Home({user}) {
     useEffect(() => {
         console.log('Places:', placesResponse);
     }, [placesResponse]);
+
     useEffect(() => {
         console.log('user in home:', user);
     }, [user]);
 
+    //add a search area whenever the lat or lng values change, this is done after handleMapClick()
     useEffect(() => {
-    }, [addedSearchAreasCount]);
+        if (latitude !== 0 && longitude !== 0) {
+            handleAddSearchArea();
+        }
+    }, [latitude, longitude]);
 
     useEffect(() => {
-        if (!user) return; // Return early if user is null
+        if (!user) return;
     
         // Function to fetch search areas from backend
         const fetchSearchAreas = async () => {
@@ -124,12 +131,12 @@ function Home({user}) {
     };
 
     const handleAddSearchArea = () => {
+        if(!user){
+            console.error("User is null");
+            return;
+        }
         const user_id = user.uid;
-        const latitude = parseFloat(document.getElementById('latitude').value);
-        const longitude = parseFloat(document.getElementById('longitude').value);
-        const radius = parseFloat(document.getElementById('radius').value);
-    
-        if (!isNaN(latitude) && !isNaN(longitude) && !isNaN(radius)) {
+        if (latitude !== null && longitude !== null && !isNaN(radius)) {
             const isDuplicate = searchAreas.some(area => 
                 area.marker.lat === latitude && 
                 area.marker.lng === longitude && 
@@ -214,9 +221,12 @@ function Home({user}) {
         }
       };
 
-    const handleMapClick = (latitude, longitude) => {
-        document.getElementById('latitude').value = latitude;
-        document.getElementById('longitude').value = longitude;
+      const handleMapClick = (mapProps, map, clickEvent) => {
+        const { latLng } = clickEvent;
+        const lat = parseFloat(latLng.lat().toFixed(4));
+        const lng = parseFloat(latLng.lng().toFixed(4));
+        setLatitude(lat);
+        setLongitude(lng);
     };
 
     const handleSearchClick = async () => {
@@ -367,13 +377,13 @@ function Home({user}) {
         <>
         {isSearching && (
             <div className='overlay w-full h-screen flex items-center justify-center absolute top-0 left-0 bg-gray-100 opacity-50 z-10'>
-                <div className='w-50 h-50 spinner'></div>
+                <div className='spinner'></div>
             </div>
         )}
         <section className='w-full flex flex-col space-y-[20vh] z-0'>
             <section className='w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
-                    <GoogleMap width={window.innerWidth} height={window.innerHeight} searchAreas={searchAreas} onMapClick={handleMapClick} />
+                    <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
                 {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
                     <div className='w-full rounded p-2'>
@@ -394,8 +404,14 @@ function Home({user}) {
                                 <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
                                     <div className='flex justify-center items-center space-x-2'>
-                                        <input id="latitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Latitude" />
-                                        <input id="longitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Longitude" />
+                                        <div className='flex flex-col space-y-1'>
+                                            <label className='text-xs tracking-wider font-semibold'>LAT</label>
+                                            <input id="latitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
+                                        </div>
+                                        <div className='flex flex-col space-y-1'>
+                                            <label className='text-xs tracking-wider font-semibold'>LONG</label>
+                                            <input id="longitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -15,7 +15,11 @@ const LandingPage = ({user}) => {
 };
 
   return (
-    <section className='w-full h-full'>
+    <section className='w-full h-screen'>
+      <div className='w-full h-full'>
+        <img src='../static/images/earth.png' className='w-full h-full'/>
+      </div>
+      <div className='absolute inset-0 -full h-full'>
       {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
@@ -28,16 +32,17 @@ const LandingPage = ({user}) => {
                         </div>
                     </div>
                 </div>}
-      <div className='w-full h-screen flex border border-black p-2 tracking-wide'>
-        <div className='w-1/2 flex justify-center items-center text-center text-xs border border-black text-gray-200'>
-            <Link to={'/home'} className='w-32 bg-gray-800 rounded p-2'>
-                <p className=''>NEW SEARCH</p>
-            </Link>
-        </div>
-        <div className='w-1/2 flex justify-center items-center text-center text-xs border border-black text-gray-200'>
-            <Link to={'/saved-places'} className='w-32 bg-gray-800 rounded p-2'>
-                <p>SAVED PLACES</p>
-            </Link>
+        <div className='w-full h-screen flex p-2 tracking-wide space-x-1'>
+          <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
+              <Link to={'/home'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
+                  <p className='text-3xl tracking-wider'>SEARCH</p>
+              </Link>
+          </div>
+          <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
+              <Link to={'/saved-places'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
+                  <p className='text-3xl tracking-wider'>SAVED PLACES</p>
+              </Link>
+          </div>
         </div>
       </div>
     </section>
