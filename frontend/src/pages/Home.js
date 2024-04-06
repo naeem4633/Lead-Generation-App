@@ -6,6 +6,7 @@ import '../home.css';
 import CustomRadiusSlider from '../components/CustomRadiusSlider';
 import isValidKeyword from '../keywordValidation';
 import { useFirebase } from '../context/firebase';
+import { supported_keyword_types } from '../supportedKeywordTypes';
 
 function Home({user}) {
     const firebase = useFirebase();
@@ -17,6 +18,8 @@ function Home({user}) {
     const [placesResponse, setPlacesResponse] = useState([]);
     const [invalidKeyword, setInvalidKeyword] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [keyword, setKeyword] = useState('');
+    const [filteredOptions, setFilteredOptions] = useState([]);
 
     let overallIndex = 0;
 
@@ -349,6 +352,23 @@ function Home({user}) {
         }
     };
 
+    const handleKeywordChange = (event) => {
+        const userInput = event.target.value.toLowerCase();
+        const filtered = Object.keys(supported_keyword_types).reduce((acc, category) => {
+            const options = supported_keyword_types[category].filter(option =>
+                option.includes(userInput)
+            );
+            return [...acc, ...options];
+        }, []);
+        setKeyword(userInput);
+        setFilteredOptions(filtered);
+    };
+
+    const handleSuggestionClick = (option) => {
+        setKeyword(option);
+        setFilteredOptions([]);
+    };
+
     const smoothScrollTo = (endX, endY, duration) => {
         const startX = window.scrollX;
         const startY = window.scrollY;
@@ -474,7 +494,27 @@ function Home({user}) {
                             <div className='flex flex-col space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>SEARCH OPTIONS</p>
                                 <div className='flex flex-col justify-center items-start space-y-2'>  
-                                    <input id="keyword" className='border border-black w-28 rounded text-sm p-1' type="text" placeholder="Keyword" />
+                                    <div className='relative flex flex-col'>
+                                        <input
+                                            id="keyword"
+                                            className='border border-black w-28 rounded text-sm p-1'
+                                            type="text"
+                                            placeholder="Keyword"
+                                            autoComplete="off"
+                                            value={keyword}
+                                            onChange={handleKeywordChange}
+                                        />
+                                        {filteredOptions.length > 0 && (
+                                            <div className='absolute top-7 bg-white mt-1 rounded-md custom-shadow-2 text-xs tracking-wide text-gray-800'>
+                                                <p className="font-semibold text-xs py-1 px-2 text-black">Suggestions</p>
+                                                <ul className="overflow-y-auto max-h-20 scrollbar scrollbar-thumb-gray-800">
+                                                    {filteredOptions.map((option, index) => (
+                                                        <li  key={index} className="py-1 px-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSuggestionClick(option)}>{option}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
                                     {invalidKeyword && (
                                         <div>
                                         <p className="font-semibold text-red-500 text-sm">Empty / Invalid keyword</p>
@@ -487,7 +527,7 @@ function Home({user}) {
                     </div>
                 </div>      
             </section>
-            <section className='w-full bg-gray-100 py-10 tracking-wide custom-shadow-2'>
+            {placesResponse.length > 0 && <section className='w-full bg-gray-100 py-10 tracking-wide custom-shadow-2'>
                 <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh] bg-white custom-shadow'>
                     <div className='flex items-center justify-center h-20 w-full'>
                         <p className='font-bold text-sm tracking-wider'>SEARCH RESULTS</p>
@@ -554,7 +594,7 @@ function Home({user}) {
                         <p>Save results</p>
                     </div>
                 </div>
-            </section>
+            </section>}
         </section>
         </>
     );

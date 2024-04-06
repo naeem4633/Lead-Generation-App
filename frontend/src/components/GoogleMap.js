@@ -11,7 +11,7 @@ function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
       <div className="">
           <Map
               google={google}
-              zoom={8}
+              zoom={10}
               style={{ width: width, height: height }}
               onClick={handleMapClick}
           >
@@ -24,7 +24,7 @@ function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
                       radius={searchArea.radius}
                       center={searchArea.marker}
                       visible={true}
-                      strokeColor="#0000FF"
+                      strokeColor="#0000FF" 
                       strokeOpacity={0.5}
                       strokeWeight={2}
                       fillColor="#0000FF"

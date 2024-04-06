@@ -97,7 +97,7 @@ async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius, 
   const requestData = {
     // includedTypes: ["gym", "fitness_center"],
     includedTypes: keywordArray,
-    excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", "physiotherapist", "sports_complex", "sports_club"],
+    // excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", "physiotherapist", "sports_complex", "sports_club"],
     maxResultCount: 20,
     locationRestriction: {
       circle: {
