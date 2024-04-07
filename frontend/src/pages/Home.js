@@ -20,8 +20,19 @@ function Home({user}) {
     const [isSearching, setIsSearching] = useState(false);
     const [keyword, setKeyword] = useState('');
     const [filteredOptions, setFilteredOptions] = useState([]);
+    const [helpString, setHelpString] = useState('');
 
     let overallIndex = 0;
+
+    useEffect(() => {
+        if (latitude === 0 && longitude === 0) {
+            setHelpString("Set the radius, then click anywhere on the map to add a search area");
+        } else if (latitude !== 0 && longitude !== 0){
+            setHelpString('Use the arrow buttons to add more areas, and enter a place to search for');
+        }else {
+            setHelpString('')
+        }
+    }, [latitude, longitude]);
 
     useEffect(() => {
         console.log('Places:', placesResponse);
@@ -95,6 +106,7 @@ function Home({user}) {
 
     const handleDirectionClick = (direction) => {
         const lastSearchArea = searchAreas[searchAreas.length - 1];
+        if (!lastSearchArea) return;
         const { lat, lng } = lastSearchArea.marker;
         const { radius } = lastSearchArea;
         let newMarker;
@@ -405,7 +417,12 @@ function Home({user}) {
                 <div className="w-full">
                     <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
-                {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                    {helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                        <div className='flex flex-row justify-start items-center space-x-4 text-gray-200'>
+                            <p>{helpString}</p>
+                        </div>
+                    </div>)}
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
                             {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
@@ -442,8 +459,8 @@ function Home({user}) {
                                 </div>
                             </div>
                             <div className='flex space-x-4'>
-                                <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleAddSearchArea}>Add</button>
-                                <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleDeleteLastArea}>Delete Last</button>
+                                <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleAddSearchArea}>Add</button>
+                                <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleDeleteLastArea}>Delete Last</button>
                             </div>
                         </div>
                         <div className='h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
@@ -451,33 +468,33 @@ function Home({user}) {
                                 <p className='font-semibold text-sm tracking-wide'>ADD MORE IN DIRECTION:</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northwest')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('northwest')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 -rotate-45' alt=''/>
                                         </div>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('north')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('north')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded' onClick={() => handleDirectionClick('northeast')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('northeast')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 rotate-45' alt=''/>
                                         </div>
                                     </div>
                                     <div className='w-full flex flex-row items-center justify-between'>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded -rotate-90' onClick={() => handleDirectionClick('west')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold -rotate-90' onClick={() => handleDirectionClick('west')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-90' onClick={() => handleDirectionClick('east')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-90' onClick={() => handleDirectionClick('east')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
                                         </div>
                                     </div>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southwest')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 rotate-45' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('southwest')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 rotate-45' alt=''/>
                                         </div>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('south')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('south')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
                                         </div>
-                                        <div className='flex bg-gray-800 items-center justify-center p-2 rounded rotate-180' onClick={() => handleDirectionClick('southeast')}>
-                                            <img src='../static/images/arrow-up.png' className='w-4 h-4 -rotate-45' alt=''/>
+                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('southeast')}>
+                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 -rotate-45' alt=''/>
                                         </div>
                                     </div>
                                 </div>
@@ -486,8 +503,8 @@ function Home({user}) {
                         <div className='h-1/6 w-full flex flex-col justify-center items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
                             <p className='font-semibold text-sm tracking-wide'>SHOW RECENT SEARCH AREAS</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
-                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 bg-gray-800 text-gray-200 rounded text-sm' onClick={handleLastAllClick}>All</button>
+                                <button className='w-10 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleLast100Click}>100</button>
+                                <button className='w-10 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
@@ -522,7 +539,7 @@ function Home({user}) {
                                     )}
                                 </div>
                             </div>
-                            <button className='w-32 h-8 bg-gray-800 text-gray-200 tracking-wide text-sm rounded' onClick={handleSearchClick}>Search</button>
+                            <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleSearchClick}>Search</button>
                         </div>
                     </div>
                 </div>      
