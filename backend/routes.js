@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {fetchNearbyPlacesFromGoogle, getMultipleNearbyPlaces, getNearbyPlaces } = require('./controllers/placesAPIController.js');
-const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi, getPlacesByUserId} = require('./controllers/placeController.js');
+const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMultiplePlaces, createPlaceFromGoogleApi, createMultiplePlacesFromGoogleApi, getPlacesByUserId, deleteMultipleById} = require('./controllers/placeController.js');
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId, getLast50SearchAreasByUserId, getLast100SearchAreasByUserId} = require('./controllers/searchAreaController');
-const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId} = require('./controllers/leadController');
+const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId, deleteAllLeads} = require('./controllers/leadController');
 const {createSearchAreaResponseCount, getAllSearchAreaResponseCounts, getSearchAreaResponseCountById, updateSearchAreaResponseCountById, deleteSearchAreaResponseCountById, deleteAllSearchAreaResponseCounts, createMultipleSearchAreaResponseCounts} = require('./controllers/searchAreaResponseCountController');
 const {getApiKey} = require('./controllers/apiKeyController');
 
@@ -19,6 +19,7 @@ router.post('/placesNormal', createMultiplePlaces)
 router.get('/places/:id', getPlace)
 router.get('/places', getAllPlaces)
 router.delete('/places/:id', deletePlace)
+router.delete('/places', deleteMultipleById)
 router.put('/places/:id', updatePlace)
 router.get('/places/by-user/:user_id', getPlacesByUserId)
 
@@ -46,6 +47,7 @@ router.get('/leads/:id', getLead);
 router.get('/leads', getAllLeads);
 router.put('/leads/:id', updateLead);
 router.delete('/leads/:id', deleteLead);
+router.delete('/leadsDeleteAll', deleteAllLeads);
 router.get('/leads/by-user/:user_id', getLeadsByUserId);
 
 //Routes for API controller

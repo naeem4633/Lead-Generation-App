@@ -514,7 +514,7 @@ function Home({user}) {
                                     <div className='relative flex flex-col'>
                                         <input
                                             id="keyword"
-                                            className='border border-black w-28 rounded text-sm p-1'
+                                            className='border border-black w-28 rounded text-xs p-1'
                                             type="text"
                                             placeholder="Keyword"
                                             autoComplete="off"

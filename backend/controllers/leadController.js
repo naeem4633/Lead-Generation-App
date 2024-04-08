@@ -3,7 +3,18 @@ const Lead = require('../models/leadModel');
 // Create a lead
 const createLead = async (req, res) => {
     try {
-        console.log(req.body)
+        // Check if lead with the same user ID and place ID already exists
+        const existingLead = await Lead.findOne({
+            user_id: req.body.user_id,
+            placeId: req.body.placeId
+        });
+
+        if (existingLead) {
+            // Lead already exists, return an error response
+            return res.status(400).json({ error: 'Lead already exists' });
+        }
+
+        // Lead does not exist, create a new lead
         const lead = await Lead.create(req.body);
         res.status(201).json(lead);
     } catch (error) {
@@ -15,13 +26,29 @@ const createLead = async (req, res) => {
 // Add multiple leads
 const createMultipleLeads = async (req, res) => {
     try {
-        const leads = await Lead.insertMany(req.body);
+        // Check if any of the leads already exist
+        const existingLeads = await Lead.find({
+            user_id: { $in: req.body.map(lead => lead.user_id) },
+            placeId: { $in: req.body.map(lead => lead.placeId) }
+        });
+
+        // Filter out existing leads from the request body
+        const newLeads = req.body.filter(lead => {
+            return !existingLeads.some(existingLead =>
+                existingLead.user_id === lead.user_id &&
+                existingLead.placeId === lead.placeId
+            );
+        });
+
+        // Insert the new leads
+        const leads = await Lead.insertMany(newLeads);
         res.status(201).json(leads);
     } catch (error) {
         console.error('Error creating multiple leads:', error);
         res.status(500).json({ error: 'Error creating multiple leads' });
     }
 };
+
 
 const getLead = async (req, res) => {
     try {
@@ -83,13 +110,23 @@ const getLeadsByUserId = async (req, res) => {
         if (leads.length === 0) {
             return res.status(404).json({ message: 'No leads found for user' });
         }
-        res.json({ leads });
+        res.json(leads);
     } catch (error) {
         console.error('Error fetching leads by user ID:', error);
         res.status(500).json({ error: 'Error fetching leads by user ID' });
     }
 };
 
+// Delete all leads
+const deleteAllLeads = async (req, res) => {
+    try {
+        const deletedLeads = await Lead.deleteMany();
+        res.json(deletedLeads);
+    } catch (error) {
+        console.error('Error deleting all leads:', error);
+        res.status(500).json({ error: 'Error deleting all leads' });
+    }
+};
 
 module.exports = {
     createLead,
@@ -99,4 +136,5 @@ module.exports = {
     updateLead,
     deleteLead,
     getLeadsByUserId,
+    deleteAllLeads,
 };

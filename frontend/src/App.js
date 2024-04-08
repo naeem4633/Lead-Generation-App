@@ -6,6 +6,7 @@ import SearchResults from './pages/SearchResults';
 import { samplePlaceData } from './samplePlaceData';
 import LandingPage from './pages/LandingPage';
 import SavedPlaces from './pages/SavedPlaces';
+import Leads from './pages/leads';
 import axios from 'axios';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -14,6 +15,8 @@ import { useFirebase } from './context/firebase';
 function App() {
   const [user, setUser] = useState(null);
   const firebase = useFirebase();
+  const [savedPlaces, setSavedPlaces] = useState([]);
+  const [leads, setLeads] = useState([]);
 
   useEffect(() => {
     const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
@@ -31,9 +34,6 @@ function App() {
   
     return unsubscribe;
   }, [firebase]);
-
-  const [savedPlaces, setSavedPlaces] = useState([]);
-
   
   useEffect(() => {
     const fetchSavedPlaces = async () => {
@@ -54,10 +54,34 @@ function App() {
 
     fetchSavedPlaces();
   }, [user]);
-
+  
   useEffect(() => {
     console.log("saved places", savedPlaces);
   }, [savedPlaces]);
+  
+  useEffect(() => {
+    const fetchLeads = async () => {
+      if (!user) {
+        return;
+      }
+      try {
+        const response = await axios.get(`http://localhost:5000/api/leads/by-user/${user.uid}`);
+        if (response.status === 200) {
+          setLeads(response.data);
+        } else {
+          console.error('Failed to fetch leads');
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+      }
+    };
+
+    fetchLeads();
+  }, [user]);
+
+  useEffect(() => {
+    console.log("leads", leads);
+  }, [leads]);
 
   return (
     <Router>
@@ -71,6 +95,7 @@ function App() {
             <Route path="/home" element={<Home user={user} />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
+            <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads}/>} />
           </Routes>
         </div>
       </div>

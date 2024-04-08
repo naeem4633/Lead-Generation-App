@@ -43,6 +43,11 @@ const LandingPage = ({user}) => {
                   <p className='text-3xl tracking-wider'>SAVED PLACES</p>
               </Link>
           </div>
+          <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
+              <Link to={'/leads'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
+                  <p className='text-3xl tracking-wider'>LEADS</p>
+              </Link>
+          </div>
         </div>
       </div>
     </section>

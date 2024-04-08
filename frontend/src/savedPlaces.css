@@ -1,0 +1,44 @@
+.container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    display: none;
+    color: white;
+  }
+  
+  .container {
+    --size: 25px;
+    width: var(--size);
+    display: block;
+    height: var(--size);
+    background-color: #191A1E;
+    border-radius: 100%;
+    cursor: pointer;
+    padding: 0px;
+    color: white;
+    box-shadow: 1.5px 1.5px 3px #0e0e0e, -1.5px -1.5px 3px rgb(95 94 94 / 25%), inset 0px 0px 0px #0e0e0e, inset 0px -0px 0px #5f5e5e;
+  }
+  
+  .container .checkmark {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 1.5px 1.5px 3px #0e0e0e, -1.5px -1.5px 3px rgb(95 94 94 / 25%), inset 0px 0px 0px #0e0e0e, inset 0px -0px 0px #5f5e5e;
+    transition: all ease 0.1s;
+    padding: 5px;
+  }
+  
+  .container .checkmark svg {
+    opacity: 0;
+    transition: all ease 0.1s;
+  }
+  
+  .container input:checked + .checkmark {
+    box-shadow: 0px 0px 0px #0e0e0e, 0px 0px 0px rgb(95 94 94 / 25%), inset 1.5px 1.5px 3px #0e0e0e, inset -1.5px -1.5px 3px #5f5e5e;
+  }
+  
+  .container input:checked + .checkmark svg {
+    opacity: 1;
+  }
