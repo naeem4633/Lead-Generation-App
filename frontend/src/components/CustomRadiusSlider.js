@@ -60,7 +60,8 @@ const CustomRadiusSlider = ({ setRadius }) => {
           sx={{
             "& .MuiSlider-markLabel": {
               fontSize: "12px", 
-            }
+            },
+            color: 'black'
           }}
         />
       </Box>

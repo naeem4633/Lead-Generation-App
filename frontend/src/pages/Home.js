@@ -9,8 +9,6 @@ import { useFirebase } from '../context/firebase';
 import { supported_keyword_types } from '../supportedKeywordTypes';
 import {backendUrl} from '../backendUrl';
 
-const SEARCH_AREA_CONTROL_COUNTER_KEY = 'searchAreaControlCounter';
-
 function Home({user}) {
     const firebase = useFirebase();
     const [searchAreas, setSearchAreas] = useState([]);
@@ -154,7 +152,7 @@ function Home({user}) {
         }
 
         const isAdmin = user.uid === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < 5;
+        const isBelowMaxLimit = searchAreaControlCounter < 10;
 
         if (isAdmin || isBelowMaxLimit) {
             const newSearchArea = { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius };
@@ -177,7 +175,7 @@ function Home({user}) {
 
         const user_id = user.uid;
         const isAdmin = user_id === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < 5;
+        const isBelowMaxLimit = searchAreaControlCounter < 10;
     
         if (isAdmin || isBelowMaxLimit) {
             if (latitude !== null && longitude !== null && !isNaN(radius)) {
@@ -453,12 +451,12 @@ function Home({user}) {
                     <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
                 {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
-                    {searchAreaControlCounter < 5 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
-                        <div className='flex flex-row justify-start items-center space-x-4 text-gray-200'>
+                    {searchAreaControlCounter < 10 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                        <div className='flex flex-row justify-start items-center space-x-4 text-white'>
                             <p>{helpString}</p>
                         </div>
                     </div>)}
-                    {searchAreaControlCounter >= 5 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
+                    {searchAreaControlCounter >= 10 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
                         <div className='flex flex-col justify-start items-start space-y-2 text-white'>
                             <p className='font-semibold'>Demo Project | Search Area Limit Reached</p>
                             <p className='text-xs'>Contact the Administrator for more info</p>
@@ -477,7 +475,7 @@ function Home({user}) {
                 </div>}
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
-                        <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 px-2 py-4 custom-shadow bg-gray-50 rounded-md'>
+                        <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
                             <div className='flex flex-col items-start space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
@@ -509,7 +507,7 @@ function Home({user}) {
                                     <img className='w-4 h-4' src='../static/images/radius.png'></img>
                                     <p className='text-black'>{currentSearchArea.radius}</p>
                                 </div>
-                                <div className='cursor-pointer hover:bg-gray-100 custom-shadow-1 p-1' onClick={handleDeleteLastArea}>
+                                <div className='cursor-pointer hover:bg-gray-200 custom-shadow-1 p-1' onClick={handleDeleteLastArea}>
                                     <img className='w-5 h-5' src='../static/images/trash.png'></img>
                                 </div>
                             </div>
@@ -611,8 +609,8 @@ function Home({user}) {
                     </div>
                 </div>      
             </section>
-            {placesResponse.length > 0 && <section className='w-full bg-gray-100 py-10 tracking-wide custom-shadow-2'>
-                <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh] bg-white custom-shadow'>
+            {placesResponse.length > 0 && <section className='w-full bg-white py-10 tracking-wide custom-shadow-2'>
+                <div className='mx-auto w-4/5 flex flex-col items-center min-h-[80vh]'>
                     <div className='flex items-center justify-center h-20 w-full'>
                         <p className='font-bold text-sm tracking-wider'>SEARCH RESULTS</p>
                     </div>
@@ -620,7 +618,7 @@ function Home({user}) {
                         {placesResponse.map((placesObject, index) => (
                             <div key={index} className='space-y-3'>
                                 {placesObject.places.map((place) => (
-                                    <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-gray-100 rounded custom-shadow-1' key={place.id}>
+                                    <div className='flex w-full p-2 border border-x-0 border-t-0 bg-gray-100 rounded custom-shadow-1' key={place.id}>
                                         <div className='flex px-4 items-center'>
                                             <p>{overallIndex += 1}</p>
                                         </div>
@@ -643,7 +641,7 @@ function Home({user}) {
                                         <div className='w-1/2 flex flex-col items-start text-sm'>
                                             {place.websiteUri ? (
                                                 <div className='w-full flex space-x-2 justify-start items-center p-2 hover:bg-gray-200 hover:underline rounded cursor-pointer'>
-                                                    <img className='w-5 h-5 select-none' src='../static/images/link.svg' alt=''/>
+                                                    <img className='w-5 h-5 select-none' src='../static/images/globe.png' alt=''/>
                                                     <a className='' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
                                                         website
                                                     </a>
