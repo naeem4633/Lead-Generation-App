@@ -10,7 +10,7 @@ const placeSchema = new mongoose.Schema({
     businessStatus: { type: String, default: '' },
     rating: { type: Number, default: 0 },
     userRatingCount: { type: Number, default: 0 },
-    user_id: { type: String, default: '' }
+    user_id: { type: String, default: '', required: true }
 });
 
 const Place = mongoose.model('Place', placeSchema);

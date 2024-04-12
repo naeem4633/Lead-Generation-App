@@ -37,6 +37,6 @@ function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
 }
 
 export default GoogleApiWrapper({
-  apiKey: 'AIzaSyCub7X0l9J4rMg3QkTWRhvKjv5-hh2SfQQ',
+  apiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   libraries: ['places'],
 })(GoogleMap);

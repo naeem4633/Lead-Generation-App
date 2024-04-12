@@ -11,6 +11,7 @@ import axios from 'axios';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import { useFirebase } from './context/firebase';
+import {backendUrl} from './backendUrl';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,7 +29,7 @@ function App() {
       }else{
         setUser(user);  
         console.log(`${user.email} is signed in.`);
-        console.log("user in App.js", user)
+        // console.log("user in App.js", user)
       }
     });
   
@@ -41,7 +42,7 @@ function App() {
         return;
       }
       try {
-        const response = await axios.get(`http://localhost:5000/api/places/by-user/${user.uid}`);
+        const response = await axios.get(`${backendUrl}api/places/by-user/${user.uid}`);
         if (response.status === 200) {
           setSavedPlaces(response.data);
         } else {
@@ -65,7 +66,7 @@ function App() {
         return;
       }
       try {
-        const response = await axios.get(`http://localhost:5000/api/leads/by-user/${user.uid}`);
+        const response = await axios.get(`${backendUrl}/api/leads/by-user/${user.uid}`);
         if (response.status === 200) {
           setLeads(response.data);
         } else {

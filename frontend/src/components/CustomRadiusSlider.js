@@ -36,28 +36,34 @@ const CustomRadiusSlider = ({ setRadius }) => {
   };
 
   return (
-      <div className='w-full flex flex-col justify-between items-start space-y-2'>
-        <input
-            id="radius"
-            className='bg-gray-800 text-gray-200 w-16 h-8 rounded text-sm p-2'
-            type="text"
-            placeholder="Radius"
-            value={radiusInput}
-            onChange={handleInputChange}
+    <div className='w-full flex flex-col justify-between items-start space-y-2'>
+      <input
+        id="radius"
+        className='bg-gray-800 w-20 h-8 text-xs custom-shadow-3 text-white p-2'
+        type="text"
+        placeholder="Radius"
+        value={radiusInput}
+        onChange={handleInputChange}
+      />
+      <Box sx={{ width: 250 }}>
+        <Slider
+          size="small"
+          aria-label="Custom marks"
+          value={sliderValue}
+          getAriaValueText={valuetext}
+          step={1000}
+          min={0}
+          max={50000}
+          valueLabelDisplay="auto"
+          marks={radii.map(value => ({ value, label: valuetext(value) }))}
+          onChange={handleSliderChange}
+          sx={{
+            "& .MuiSlider-markLabel": {
+              fontSize: "12px", 
+            }
+          }}
         />
-        <Box sx={{ width: 250 }}>
-            <Slider
-                aria-label="Custom marks"
-                value={sliderValue}
-                getAriaValueText={valuetext}
-                step={5000}
-                min={0}
-                max={50000}
-                valueLabelDisplay="auto"
-                marks={radii.map(value => ({ value, label: valuetext(value) }))}
-                onChange={handleSliderChange}
-            />
-        </Box>
+      </Box>
     </div>
   );
 };

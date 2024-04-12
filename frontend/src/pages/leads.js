@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useFirebase } from '../context/firebase';
+import {backendUrl} from '../backendUrl';
 
 const Leads = ({leads, setLeads, user}) => {
     const firebase = useFirebase();
@@ -16,7 +17,7 @@ const Leads = ({leads, setLeads, user}) => {
 
     const handleDeleteClick = async (id) => {
         try {
-            const response = await axios.delete(`http://localhost:5000/api/leads/${id}`);
+            const response = await axios.delete(`${backendUrl}/api/leads/${id}`);
             if (response.status === 200) {
                 const updatedLeads = leads.filter(lead => lead._id !== id);
                 setLeads(updatedLeads);

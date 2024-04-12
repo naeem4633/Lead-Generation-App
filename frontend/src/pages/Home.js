@@ -7,11 +7,15 @@ import CustomRadiusSlider from '../components/CustomRadiusSlider';
 import isValidKeyword from '../keywordValidation';
 import { useFirebase } from '../context/firebase';
 import { supported_keyword_types } from '../supportedKeywordTypes';
+import {backendUrl} from '../backendUrl';
+
+const SEARCH_AREA_CONTROL_COUNTER_KEY = 'searchAreaControlCounter';
 
 function Home({user}) {
     const firebase = useFirebase();
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
+    const [currentSearchArea, setCurrentSearchArea] = useState({ user_id: '', marker: { lat: 0, lng: 0 }, radius: 0 })
     const [radius, setRadius] = useState(1000);
     const [latitude, setLatitude] = useState(0);
     const [longitude, setLongitude] = useState(0);
@@ -21,8 +25,13 @@ function Home({user}) {
     const [keyword, setKeyword] = useState('');
     const [filteredOptions, setFilteredOptions] = useState([]);
     const [helpString, setHelpString] = useState('');
+    const [searchAreaControlCounter, setSearchAreaControlCounter] = useState(() => {
+        const storedValue = localStorage.getItem('searchAreaControlCounter');
+        return storedValue ? parseInt(storedValue, 10) : 0;
+    });
 
     let overallIndex = 0;
+    const ADMIN_USER_ID='kY2Xzs6u0wXlGVraQgyswo4CrUn2';
 
     useEffect(() => {
         if (latitude === 0 && longitude === 0) {
@@ -35,12 +44,16 @@ function Home({user}) {
     }, [latitude, longitude]);
 
     useEffect(() => {
+        localStorage.setItem('searchAreaControlCounter', searchAreaControlCounter.toString());
+    }, [searchAreaControlCounter]);
+
+    useEffect(() => {
         console.log('Places:', placesResponse);
     }, [placesResponse]);
 
-    useEffect(() => {
-        console.log('user in home:', user);
-    }, [user]);
+    // useEffect(() => {
+    //     console.log('user in home:', user);
+    // }, [user]);
 
     //add a search area whenever the lat or lng values change, this is done after handleMapClick()
     useEffect(() => {
@@ -55,7 +68,7 @@ function Home({user}) {
         // Function to fetch search areas from backend
         const fetchSearchAreas = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/last50SearchAreas/by-user/${user.uid}`);
+                const response = await axios.get(`${backendUrl}api/last50SearchAreas/by-user/${user.uid}`);
                 // Map the received data to match the structure of your searchAreas state
                 const mappedData = response.data.map(area => ({
                     id: area._id,
@@ -76,7 +89,7 @@ function Home({user}) {
 
     const handleLast100Click = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/last100SearchAreas/by-user/${user.uid}`);
+            const response = await axios.get(`${backendUrl}api/last100SearchAreas/by-user/${user.uid}`);
             const mappedData = response.data.map(area => ({
                 id: area._id,
                 user_id: area.user_id,
@@ -91,7 +104,7 @@ function Home({user}) {
 
     const handleLastAllClick = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/searchAreas/by-user/${user.uid}`);
+            const response = await axios.get(`${backendUrl}api/searchAreas/by-user/${user.uid}`);
             const mappedData = response.data.map(area => ({
                 id: area._id,
                 user_id: area.user_id,
@@ -140,32 +153,54 @@ function Home({user}) {
                 newMarker = lastSearchArea.marker;
         }
 
-        const updatedSearchAreas = [...searchAreas, { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius }];
-        setSearchAreas(updatedSearchAreas);
-        setaddedSearchAreasCount(prevCount => prevCount + 1);
+        const isAdmin = user.uid === ADMIN_USER_ID; 
+        const isBelowMaxLimit = searchAreaControlCounter < 5;
+
+        if (isAdmin || isBelowMaxLimit) {
+            const newSearchArea = { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius };
+            setCurrentSearchArea(newSearchArea)
+            const updatedSearchAreas = [...searchAreas, newSearchArea];
+            setSearchAreas(updatedSearchAreas);
+            setaddedSearchAreasCount(prevCount => prevCount + 1);
+            isAdmin && setSearchAreaControlCounter(0);
+            !isAdmin && setSearchAreaControlCounter(prevCount => prevCount + 1);
+        } else {
+            console.error('Duplicate search area');
+        }
     };
 
     const handleAddSearchArea = () => {
-        if(!user){
+        if (!user) {
             console.error("User is null");
             return;
         }
+
         const user_id = user.uid;
-        if (latitude !== null && longitude !== null && !isNaN(radius)) {
-            const isDuplicate = searchAreas.some(area => 
-                area.marker.lat === latitude && 
-                area.marker.lng === longitude && 
-                area.radius === radius &&
-                area.user_id === user_id
-            );
-            
-            if (!isDuplicate) {
-                const newSearchArea = { user_id: user_id, marker: { lat: latitude, lng: longitude }, radius: radius };
-                setSearchAreas([...searchAreas, newSearchArea]);
-                setaddedSearchAreasCount(prevCount => prevCount + 1);
-            } else {
-                console.error('Duplicate search area');
+        const isAdmin = user_id === ADMIN_USER_ID; 
+        const isBelowMaxLimit = searchAreaControlCounter < 5;
+    
+        if (isAdmin || isBelowMaxLimit) {
+            if (latitude !== null && longitude !== null && !isNaN(radius)) {
+                const isDuplicate = searchAreas.some(area => 
+                    area.marker.lat === latitude && 
+                    area.marker.lng === longitude && 
+                    area.radius === radius &&
+                    area.user_id === user_id
+                );
+    
+                if (!isDuplicate) {
+                    const newSearchArea = { user_id: user_id, marker: { lat: latitude, lng: longitude }, radius: radius };
+                    setCurrentSearchArea(newSearchArea);
+                    setSearchAreas([...searchAreas, newSearchArea]);
+                    setaddedSearchAreasCount(prevCount => prevCount + 1);
+                    isAdmin && setSearchAreaControlCounter(0);
+                    !isAdmin && setSearchAreaControlCounter(prevCount => prevCount + 1);
+                } else {
+                    console.error('Duplicate search area');
+                }
             }
+        } else {
+            console.error('Maximum search area limit reached');
         }
     };
 
@@ -180,7 +215,7 @@ function Home({user}) {
             if (lastSearchArea && lastSearchArea.id) {
                 // Send DELETE request to delete the last search area
                 try {
-                    await axios.delete(`http://localhost:5000/api/searchAreas/${lastSearchArea.id}`);
+                    await axios.delete(`${backendUrl}api/searchAreas/${lastSearchArea.id}`);
                     console.log('Last search area deleted successfully.');
                 } catch (error) {
                     console.error('Error deleting last search area:', error);
@@ -217,7 +252,7 @@ function Home({user}) {
             });
           });
       
-          const response = await fetch('http://localhost:5000/api/placesNormal', {
+          const response = await fetch(`${backendUrl}api/placesNormal`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -282,7 +317,7 @@ function Home({user}) {
             if (!isValidKeyword(kw)) {
                 console.log('Invalid keyword:', kw);
                 setInvalidKeyword(true);
-                setIsSearching(false); // Set isSearching to false if an invalid keyword is found
+                setIsSearching(false);
                 return;
             }
         }
@@ -306,7 +341,7 @@ function Home({user}) {
             const recentSearchAreas = searchAreas.slice(-addedSearchAreasCount);
         
             // Send the sliced array in the request
-            await axios.post('http://localhost:5000/api/searchAreas', recentSearchAreas, {
+            await axios.post(`${backendUrl}api/searchAreas`, recentSearchAreas, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -319,7 +354,7 @@ function Home({user}) {
     
         
             const nearbyPlacesResponse = await axios.post(
-                'http://localhost:5000/api/multiple-nearby-places',
+                `${backendUrl}api/multiple-nearby-places`,
                 { searchAreas: recentSearchAreas, keywordArray },
                 {
                     headers: {
@@ -338,7 +373,7 @@ function Home({user}) {
             //send the seearch area response count objects back to the relevant path for storage
             try {
                 const searchAreaResponseCounts = nearbyPlacesResponse.data.searchAreaResponseCounts;
-                await axios.post('http://localhost:5000/api/searchAreaResponseCounts', searchAreaResponseCounts, {
+                await axios.post(`${backendUrl}api/searchAreaResponseCounts`, searchAreaResponseCounts, {
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -418,9 +453,15 @@ function Home({user}) {
                     <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
                 {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
-                    {helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                    {searchAreaControlCounter < 5 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
                         <div className='flex flex-row justify-start items-center space-x-4 text-gray-200'>
                             <p>{helpString}</p>
+                        </div>
+                    </div>)}
+                    {searchAreaControlCounter >= 5 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
+                        <div className='flex flex-col justify-start items-start space-y-2 text-white'>
+                            <p className='font-semibold'>Demo Project | Search Area Limit Reached</p>
+                            <p className='text-xs'>Contact the Administrator for more info</p>
                         </div>
                     </div>)}
                     <div className='w-full rounded p-2'>
@@ -440,14 +481,14 @@ function Home({user}) {
                             <div className='flex flex-col items-start space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
-                                    <div className='flex justify-center items-center space-x-2'>
+                                    <div className='flex justify-center items-center space-x-4'>
                                         <div className='flex flex-col space-y-1'>
                                             <label className='text-xs tracking-wider font-semibold'>LAT</label>
-                                            <input id="latitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
+                                            <input id="latitude" className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
                                         </div>
                                         <div className='flex flex-col space-y-1'>
                                             <label className='text-xs tracking-wider font-semibold'>LONG</label>
-                                            <input id="longitude" className='bg-gray-800 text-gray-200 w-32 rounded text-sm p-2' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
+                                            <input id="longitude" className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
                                         </div>
                                     </div>
                                 </div>
@@ -458,63 +499,89 @@ function Home({user}) {
                                     <CustomRadiusSlider setRadius={setRadius}/>
                                 </div>
                             </div>
-                            <div className='flex space-x-4'>
-                                <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleAddSearchArea}>Add</button>
-                                <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleDeleteLastArea}>Delete Last</button>
+                            <div className='flex space-x-4 text-xs w-full items-center cursor-default'>
+                                <div className='flex items-center justify-center space-x-2 custom-shadow-1 p-1'>
+                                    <img className='w-4 h-4' src='../static/images/pin.png'></img>
+                                    <p className='text-black'>{currentSearchArea.marker.lat.toFixed(2)}</p>
+                                    <p className='text-black'>{currentSearchArea.marker.lng.toFixed(2)}</p>
+                                </div>
+                                <div className='flex space-x-2 items-center custom-shadow-1 p-1'>
+                                    <img className='w-4 h-4' src='../static/images/radius.png'></img>
+                                    <p className='text-black'>{currentSearchArea.radius}</p>
+                                </div>
+                                <div className='cursor-pointer hover:bg-gray-100 custom-shadow-1 p-1' onClick={handleDeleteLastArea}>
+                                    <img className='w-5 h-5' src='../static/images/trash.png'></img>
+                                </div>
                             </div>
                         </div>
                         <div className='h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='w-full flex flex-col space-y-2'>
-                                <p className='font-semibold text-sm tracking-wide'>ADD MORE IN DIRECTION:</p>
+                                <p className='font-semibold text-sm tracking-wide'>ADD MORE AREAS</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('northwest')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 -rotate-45' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('northwest')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-45">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('north')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('north')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold' onClick={() => handleDirectionClick('northeast')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 rotate-45' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('northeast')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white rotate-45">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className='w-full flex flex-row items-center justify-between'>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold -rotate-90' onClick={() => handleDirectionClick('west')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('west')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-90">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-90' onClick={() => handleDirectionClick('east')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('east')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white rotate-90">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className='flex justify-between space-x-1'>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('southwest')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 rotate-45' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('southwest')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white  rotate-45">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('south')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('south')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        <div className='flex border border-gray-300 hover:border-gray-800 items-center justify-center p-2 rounded transition-all duration-300 font-semibold rotate-180' onClick={() => handleDirectionClick('southeast')}>
-                                            <img src='../static/images/arrow-up-dark.png' className='w-4 h-4 -rotate-45' alt=''/>
+                                        <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('southeast')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-45">
+                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className='h-1/6 w-full flex flex-col justify-center items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
-                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT SEARCH AREAS</p>
+                        <div className='h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
+                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
-                                <button className='w-10 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleLastAllClick}>All</button>
+                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white' onClick={handleLast100Click}>100</button>
+                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
-                        <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
+                        <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
                             <div className='flex flex-col space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>SEARCH OPTIONS</p>
                                 <div className='flex flex-col justify-center items-start space-y-2'>  
                                     <div className='relative flex flex-col'>
                                         <input
                                             id="keyword"
-                                            className='border border-black w-28 rounded text-xs p-1'
+                                            className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3'
                                             type="text"
                                             placeholder="Keyword"
                                             autoComplete="off"
@@ -539,7 +606,7 @@ function Home({user}) {
                                     )}
                                 </div>
                             </div>
-                            <button className='w-32 h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold' onClick={handleSearchClick}>Search</button>
+                            <button className='w-32 h-8 hover:bg-gray-800 hover:text-white text-black tracking-wide text-sm transition-all duration-100 custom-shadow-1' onClick={handleSearchClick}>Search</button>
                         </div>
                     </div>
                 </div>      

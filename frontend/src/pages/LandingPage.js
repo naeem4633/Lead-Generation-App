@@ -35,7 +35,7 @@ const LandingPage = ({user}) => {
         <div className='w-full h-screen flex p-2 tracking-wide space-x-1'>
           <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
               <Link to={'/home'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
-                  <p className='text-3xl tracking-wider'>SEARCH</p>
+                  <p className='text-3xl tracking-wider'>NEW SEARCH</p>
               </Link>
           </div>
           <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>

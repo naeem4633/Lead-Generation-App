@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useFirebase } from '../context/firebase';
 import '../savedPlaces.css'; 
+import { backendUrl } from '../backendUrl';
 
 const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
     const firebase = useFirebase();
@@ -27,10 +28,10 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             }));
 
             // Send POST request to convert checked items to leads
-            await axios.post('http://localhost:5000/api/leads', leads);
+            await axios.post(`${backendUrl}api/leads`, leads);
 
             // Send DELETE request to delete checked items
-            await axios.delete('http://localhost:5000/api/places', { data: { ids: checkedItems } });
+            await axios.delete(`${backendUrl}api/places`, { data: { ids: checkedItems } });
 
             // Update saved places after successful conversion and deletion
             const updatedSavedPlaces = savedPlaces.filter(place => !checkedItems.includes(place.id));
@@ -57,7 +58,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
 
     const handleDeleteClick = async (id) => {
         try {
-            const response = await axios.delete(`http://localhost:5000/api/places/${id}`);
+            const response = await axios.delete(`${backendUrl}api/places/${id}`);
             if (response.status === 200) {
                 const updatedSavedPlaces = savedPlaces.filter(place => place.id !== id);
                 setSavedPlaces(updatedSavedPlaces);
