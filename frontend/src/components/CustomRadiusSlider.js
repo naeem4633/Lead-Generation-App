@@ -15,8 +15,8 @@ function valuetext(value) {
 }
 
 const CustomRadiusSlider = ({ setRadius }) => {
-  const [sliderValue, setSliderValue] = useState(1000);
-  const [radiusInput, setRadiusInput] = useState('1000'); 
+  const [sliderValue, setSliderValue] = useState(5000);
+  const [radiusInput, setRadiusInput] = useState(5000); 
 
   const handleSliderChange = (event, newValue) => {
     if (typeof newValue === 'number') {

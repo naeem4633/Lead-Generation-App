@@ -14,7 +14,7 @@ function Home({user}) {
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [currentSearchArea, setCurrentSearchArea] = useState({ user_id: '', marker: { lat: 0, lng: 0 }, radius: 0 })
-    const [radius, setRadius] = useState(1000);
+    const [radius, setRadius] = useState(5000);
     const [latitude, setLatitude] = useState(0);
     const [longitude, setLongitude] = useState(0);
     const [placesResponse, setPlacesResponse] = useState([]);
@@ -497,7 +497,7 @@ function Home({user}) {
                                     <CustomRadiusSlider setRadius={setRadius}/>
                                 </div>
                             </div>
-                            <div className='flex space-x-4 text-xs w-full items-center cursor-default'>
+                            <div className='flex space-x-4 text-xs w-full items-center cursor-default select-none'>
                                 <div className='flex items-center justify-center space-x-2 custom-shadow-1 p-1'>
                                     <img className='w-4 h-4' src='../static/images/pin.png'></img>
                                     <p className='text-black'>{currentSearchArea.marker.lat.toFixed(2)}</p>
@@ -568,8 +568,8 @@ function Home({user}) {
                         <div className='h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
                             <p className='font-semibold text-sm tracking-wide'>SHOW RECENT</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
-                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white' onClick={handleLastAllClick}>All</button>
+                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLast100Click}>100</button>
+                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
                         <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
@@ -604,7 +604,7 @@ function Home({user}) {
                                     )}
                                 </div>
                             </div>
-                            <button className='w-32 h-8 hover:bg-gray-800 hover:text-white text-black tracking-wide text-sm transition-all duration-100 custom-shadow-1' onClick={handleSearchClick}>Search</button>
+                            <button className='w-32 h-8 hover:bg-gray-800 hover:text-white text-black tracking-wide text-sm transition-all duration-100 custom-shadow-1 select-none' onClick={handleSearchClick}>Search</button>
                         </div>
                     </div>
                 </div>      
