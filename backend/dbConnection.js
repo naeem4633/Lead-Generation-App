@@ -3,19 +3,19 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect('mongodb://127.0.0.1:27017/Gym-Database');
+    await mongoose.connect('mongodb://127.0.0.1:27017/Nearby-Search-Database');
 
     console.log('MongoDB connected');
 
     // Check if the TMUC database already exists
     const adminDB = mongoose.connection.db.admin();
     const databases = await adminDB.listDatabases();
-    const existingDB = databases.databases.find(db => db.name === 'Gym-Database');
+    const existingDB = databases.databases.find(db => db.name === 'Nearby-Search-Database');
 
     // If TMUC database doesn't exist, create it
     if (!existingDB) {
-      await mongoose.connection.db.createCollection('Gym-Database');
-      console.log('Gyms created');
+      await mongoose.connection.db.createCollection('Nearby-Search-Database');
+      console.log('Nearby-Search-Database created');
     }
   } catch (error) {
     console.error('MongoDB connection error:', error);
