@@ -29,7 +29,7 @@ function App() {
       }else{
         setUser(user);  
         console.log(`${user.email} is signed in.`);
-        // console.log("user in App.js", user)
+        console.log("user in App.js", user)
       }
     });
   
@@ -42,7 +42,19 @@ function App() {
         return;
       }
       try {
-        const response = await axios.get(`${backendUrl}api/places/by-user/${user.uid}`);
+        // Get Firebase authentication token from user object
+        const firebaseToken = await user.getIdToken();
+
+        // Set headers with Firebase token
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${firebaseToken}`
+        };
+
+        const response = await axios.get(`${backendUrl}api/places/by-user/${user.uid}`, {
+            headers: headers
+        });
+
         if (response.status === 200) {
           setSavedPlaces(response.data);
         } else {
@@ -66,7 +78,19 @@ function App() {
         return;
       }
       try {
-        const response = await axios.get(`${backendUrl}/api/leads/by-user/${user.uid}`);
+        // Get Firebase authentication token from user object
+        const firebaseToken = await user.getIdToken();
+
+        // Set headers with Firebase token
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${firebaseToken}`
+        };
+
+        const response = await axios.get(`${backendUrl}api/leads/by-user/${user.uid}`, {
+            headers: headers
+        });
+
         if (response.status === 200) {
           setLeads(response.data);
         } else {

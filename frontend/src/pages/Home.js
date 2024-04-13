@@ -30,6 +30,7 @@ function Home({user}) {
 
     let overallIndex = 0;
     const ADMIN_USER_ID='kY2Xzs6u0wXlGVraQgyswo4CrUn2';
+    
 
     useEffect(() => {
         if (latitude === 0 && longitude === 0) {
@@ -51,6 +52,7 @@ function Home({user}) {
 
     // useEffect(() => {
     //     console.log('user in home:', user);
+    //     console.log('user fb token:', user.getIdToken());
     // }, [user]);
 
     //add a search area whenever the lat or lng values change, this is done after handleMapClick()
@@ -62,11 +64,23 @@ function Home({user}) {
 
     useEffect(() => {
         if (!user) return;
-    
+
         // Function to fetch search areas from backend
         const fetchSearchAreas = async () => {
             try {
-                const response = await axios.get(`${backendUrl}api/last50SearchAreas/by-user/${user.uid}`);
+                // Get Firebase authentication token from user object
+                const firebaseToken = await user.getIdToken();
+
+                // Set headers with Firebase token
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${firebaseToken}`
+                };
+
+                const response = await axios.get(`${backendUrl}api/last50SearchAreas/by-user/${user.uid}`, {
+                    headers: headers
+                });
+                
                 // Map the received data to match the structure of your searchAreas state
                 const mappedData = response.data.map(area => ({
                     id: area._id,
@@ -80,14 +94,26 @@ function Home({user}) {
                 console.error('Error fetching search areas:', error);
             }
         };
-    
+
         // Fetch search areas when component mounts or when user changes
         fetchSearchAreas();
-    }, [user]); 
+    }, [user]);
+ 
 
     const handleLast100Click = async () => {
         try {
-            const response = await axios.get(`${backendUrl}api/last100SearchAreas/by-user/${user.uid}`);
+            // Get Firebase authentication token from user object
+            const firebaseToken = await user.getIdToken();
+
+            // Set headers with Firebase token
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${firebaseToken}`
+            };
+
+            const response = await axios.get(`${backendUrl}api/last100SearchAreas/by-user/${user.uid}`, {
+                headers: headers
+            });
             const mappedData = response.data.map(area => ({
                 id: area._id,
                 user_id: area.user_id,
@@ -102,7 +128,18 @@ function Home({user}) {
 
     const handleLastAllClick = async () => {
         try {
-            const response = await axios.get(`${backendUrl}api/searchAreas/by-user/${user.uid}`);
+            // Get Firebase authentication token from user object
+            const firebaseToken = await user.getIdToken();
+
+            // Set headers with Firebase token
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${firebaseToken}`
+            };
+
+            const response = await axios.get(`${backendUrl}api/searchAreas/by-user/${user.uid}`, {
+                headers: headers
+            });
             const mappedData = response.data.map(area => ({
                 id: area._id,
                 user_id: area.user_id,
