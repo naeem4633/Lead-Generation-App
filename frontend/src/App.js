@@ -29,7 +29,7 @@ function App() {
       }else{
         setUser(user);  
         console.log(`${user.email} is signed in.`);
-        console.log("user in App.js", user)
+        // console.log("user in App.js", user)
       }
     });
   

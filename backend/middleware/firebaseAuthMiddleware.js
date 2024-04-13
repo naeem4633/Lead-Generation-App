@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require('../../serviceAccountKey.json');
+const serviceAccount = require('../../serviceAccount.json');
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://nearby-search-program-frontend-default-rtdb.firebaseio.com"
