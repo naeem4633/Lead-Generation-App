@@ -11,13 +11,21 @@ import axios from 'axios';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import { useFirebase } from './context/firebase';
+import { useNavigate } from 'react-router-dom';
 import {backendUrl} from './backendUrl';
+import ErrorPage from './pages/ErrorPage';
 
 function App() {
   const [user, setUser] = useState(null);
   const firebase = useFirebase();
   const [savedPlaces, setSavedPlaces] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const isScreenMobile = window.innerWidth <= 700; 
+    setIsMobile(isScreenMobile);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
@@ -114,13 +122,14 @@ function App() {
         {/* <Header /> */}
         <div className="app-body">
           <Routes>
-            <Route path="/" element={<LandingPage user={user} savedPlaces={savedPlaces}/>} />
+            <Route path="/" element={<LandingPage user={user} isMobile={isMobile}/>} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login user={user}/>} />
+            <Route path="/login" element={<Login user={user} isMobile={isMobile}/>} />
             <Route path="/home" element={<Home user={user} />} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
             <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads}/>} />
+            <Route path="*" element={<ErrorPage/>} />
           </Routes>
         </div>
       </div>

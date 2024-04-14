@@ -3,8 +3,9 @@ import { useFirebase } from '../context/firebase';
 import { Link } from 'react-router-dom';
 import '../authorization.css'
 import { useNavigate } from 'react-router-dom';
+import MobileScreen from './MobileScreen';
 
-const Login = ({user}) => {
+const Login = ({user, isMobile}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -61,6 +62,8 @@ const Login = ({user}) => {
   };
 
     return (
+    <>
+      {isMobile && (<MobileScreen/>)}
     <section className='w-full relative tracking-wide min-h-[80vh] flex justify-center items-center flex-col'>
       <form className="authorization-form">
         <div className="authorization-flex-column">
@@ -109,6 +112,7 @@ const Login = ({user}) => {
           </div>
         </form>
     </section>
+    </>
   )
 }
 

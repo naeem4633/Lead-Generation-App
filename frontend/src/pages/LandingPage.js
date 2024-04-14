@@ -1,8 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom'; 
 import {useFirebase} from '../context/firebase'
+import MobileScreen from './MobileScreen';
 
-const LandingPage = ({user}) => {
+const LandingPage = ({user, isMobile}) => {
   const firebase = useFirebase();
 
   const handleLogoutClick = async () => {
@@ -15,19 +16,21 @@ const LandingPage = ({user}) => {
 };
 
   return (
+    <>
+    {isMobile && (<MobileScreen/>)}
     <section className='w-full h-screen'>
       <div className='w-full h-full'>
         <img src='../static/images/earth.png' className='w-full h-full'/>
       </div>
       <div className='absolute inset-0 -full h-full'>
-      {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+      {user && <div className='absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
                             {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
                             <p>{user.displayName || user.email}</p>
                             {user.isAnonymous && (<p>Guest</p>)}
                             <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
-                                <img src='../static/images/logout.png' className='w-6 h-6' alt=''/>
+                                <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
                             </div>
                         </div>
                     </div>
@@ -51,6 +54,7 @@ const LandingPage = ({user}) => {
         </div>
       </div>
     </section>
+    </>
   )
 }
 

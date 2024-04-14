@@ -32,14 +32,14 @@ const Leads = ({leads, setLeads, user}) => {
 
   return (
     <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
-        {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+        {user && <div className='absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
                             {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
                             <p>{user.displayName || user.email}</p>
                             {user.isAnonymous && (<p>Guest</p>)}
                             <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
-                                <img src='../static/images/logout.png' className='w-6 h-6' alt=''/>
+                                <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
                             </div>
                         </div>
                     </div>
@@ -49,6 +49,7 @@ const Leads = ({leads, setLeads, user}) => {
                 <p className='font-bold text-sm tracking-wider'>LEADS</p>
             </div>
             <div className='flex flex-col w-full space-y-3 p-4'>
+                {leads.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
                 {leads.map((lead, index) => (
                     <div key={index} className='space-y-3'>
                         <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-gray-100 rounded custom-shadow-1' key={lead._id}>

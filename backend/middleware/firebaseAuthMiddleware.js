@@ -12,17 +12,20 @@ const validateFirebaseToken = async (req, res, next) => {
 
   // Check if idToken includes 'Bearer ' prefix
   if (idToken && idToken.startsWith('Bearer ')) {
-      // Remove 'Bearer ' prefix
-      idToken = idToken.slice(7);
+    // Remove 'Bearer ' prefix
+    idToken = idToken.slice(7);
+  } else {
+    console.error('No Firebase token provided');
+    return res.status(401).json({ error: 'Unauthorized. No Firebase token provided' });
   }
 
   try {
-      const decodedToken = await admin.auth().verifyIdToken(idToken); // Verify token
-      req.user = decodedToken; // Attach decoded token data to request object
-      next(); // Proceed to next middleware or route handler
+    const decodedToken = await admin.auth().verifyIdToken(idToken); // Verify token
+    req.user = decodedToken; // Attach decoded token data to request object
+    next(); // Proceed to next middleware or route handler
   } catch (error) {
-      console.error('Error verifying Firebase token:', error);
-      return res.status(401).json({ error: 'Unauthorized' }); // Unauthorized if token verification fails
+    console.error('Error verifying Firebase token:', error);
+    return res.status(401).json({ error: 'Unauthorized. Invalid Firebase token' }); // Unauthorized if token verification fails
   }
 };
 

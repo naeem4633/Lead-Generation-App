@@ -8,9 +8,11 @@ import isValidKeyword from '../keywordValidation';
 import { useFirebase } from '../context/firebase';
 import { supported_keyword_types } from '../supportedKeywordTypes';
 import {backendUrl} from '../backendUrl';
+import { useNavigate } from 'react-router-dom';
 
 function Home({user}) {
     const firebase = useFirebase();
+    const navigate = useNavigate();
     const [searchAreas, setSearchAreas] = useState([]);
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [currentSearchArea, setCurrentSearchArea] = useState({ user_id: '', marker: { lat: 0, lng: 0 }, radius: 0 })
@@ -23,6 +25,7 @@ function Home({user}) {
     const [keyword, setKeyword] = useState('');
     const [filteredOptions, setFilteredOptions] = useState([]);
     const [helpString, setHelpString] = useState('');
+    const [saveButtonText, setSaveButtonText] = useState('Save Results');
     const [searchAreaControlCounter, setSearchAreaControlCounter] = useState(() => {
         const storedValue = localStorage.getItem('searchAreaControlCounter');
         return storedValue ? parseInt(storedValue, 10) : 0;
@@ -264,6 +267,11 @@ function Home({user}) {
     };
     
     const handleSaveButtonClick = async () => {
+        if (user.isAnonymous){
+            setSaveButtonText('Unable to save on Guest Login');
+            return;
+        }
+        setSaveButtonText('Saving...');
         try {
           const placesToSave = [];
       
@@ -301,6 +309,8 @@ function Home({user}) {
       
           const data = await response.json();
           console.log('Places saved:', data);
+          setSaveButtonText('Save Results')
+          navigate('/saved-places');
         } catch (error) {
           console.error('Error saving places:', error);
         }
@@ -483,11 +493,11 @@ function Home({user}) {
             </div>
         )}
         <section className='w-full flex flex-col space-y-[20vh] z-0'>
-            <section className='w-full flex flex-col min-h-screen custom-shadow-2'>
+            <section className='text-xs 2xl:text-sm w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
                     <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
                 </div>
-                {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+                {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
                     {searchAreaControlCounter < 10 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
                         <div className='flex flex-row justify-start items-center space-x-4 text-white'>
                             <p>{helpString}</p>
@@ -505,14 +515,14 @@ function Home({user}) {
                             <p>{user.displayName || user.email}</p>
                             {user.isAnonymous && (<p>Guest</p>)}
                             <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
-                                <img src='../static/images/logout.png' className='w-6 h-6' alt=''/>
+                                <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
                             </div>
                         </div>
                     </div>
                 </div>}
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
-                        <div className='h-1/3 w-full flex flex-col justify-start items-start space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
+                        <div className='h-2/5 2xl:h-1/3 w-full flex flex-col justify-start items-start space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
                             <div className='flex flex-col items-start space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
@@ -536,20 +546,20 @@ function Home({user}) {
                             </div>
                             <div className='flex space-x-4 text-xs w-full items-center cursor-default select-none'>
                                 <div className='flex items-center justify-center space-x-2 custom-shadow-1 p-1'>
-                                    <img className='w-4 h-4' src='../static/images/pin.png'></img>
+                                    <img className='w-4 h-4' src='../static/images/pin.png' alt=''/>
                                     <p className='text-black'>{currentSearchArea.marker.lat.toFixed(2)}</p>
                                     <p className='text-black'>{currentSearchArea.marker.lng.toFixed(2)}</p>
                                 </div>
                                 <div className='flex space-x-2 items-center custom-shadow-1 p-1'>
-                                    <img className='w-4 h-4' src='../static/images/radius.png'></img>
+                                    <img className='w-4 h-4' src='../static/images/radius.png'alt=''/>
                                     <p className='text-black'>{currentSearchArea.radius}</p>
                                 </div>
                                 <div className='cursor-pointer hover:bg-gray-200 custom-shadow-1 p-1' onClick={handleDeleteLastArea}>
-                                    <img className='w-5 h-5' src='../static/images/trash.png'></img>
+                                    <img className='w-5 h-5' src='../static/images/trash.png' alt=''/>
                                 </div>
                             </div>
                         </div>
-                        <div className='h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
+                        <div className='flx-grow 2xl:h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
                             <div className='w-full flex flex-col space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>ADD MORE AREAS</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
@@ -602,23 +612,23 @@ function Home({user}) {
                                 </div>
                             </div>
                         </div>
-                        <div className='h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
-                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT</p>
+                        <div className='h-fit 2xl:h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
+                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT AREAS</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
                                 <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLast100Click}>100</button>
                                 <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
-                        <div className='h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
+                        <div className='h-1/4 2xl:h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
                             <div className='flex flex-col space-y-2'>
                                 <p className='font-semibold text-sm tracking-wide'>SEARCH OPTIONS</p>
                                 <div className='flex flex-col justify-center items-start space-y-2'>  
                                     <div className='relative flex flex-col'>
                                         <input
                                             id="keyword"
-                                            className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3'
+                                            className='bg-gray-800 text-white w-32 text-xs p-2 custom-shadow-3'
                                             type="text"
-                                            placeholder="Keyword"
+                                            placeholder="Place Keyword"
                                             autoComplete="off"
                                             value={keyword}
                                             onChange={handleKeywordChange}
@@ -709,8 +719,8 @@ function Home({user}) {
                     </div>
                 </div>
                 <div className='mx-auto w-4/5 flex items-center justify-end py-4'>
-                    <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-40 h-10 bg-gray-600 rounded cursor-pointer text-white'>
-                        <p>Save results</p>
+                    <div onClick={handleSaveButtonClick} className='flex items-center justify-center w-fit h-10 px-8 bg-gray-600 rounded cursor-pointer text-white'>
+                        <p>{saveButtonText}</p>
                     </div>
                 </div>
             </section>}

@@ -3,8 +3,10 @@ import axios from 'axios';
 import { useFirebase } from '../context/firebase';
 import '../savedPlaces.css'; 
 import { backendUrl } from '../backendUrl';
+import { useNavigate } from 'react-router-dom';
 
 const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
+    const navigate = useNavigate();
     const firebase = useFirebase();
     const [checkedItems, setCheckedItems] = useState([]);
 
@@ -42,6 +44,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
 
             // Handle response if necessary
             console.log('Conversion to leads and deletion successful');
+            navigate('/leads');
         } catch (error) {
             console.error('Error converting to leads:', error);
         }
@@ -73,14 +76,14 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
 
   return (
     <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
-        {user && <div className='absolute top-0 right-0 p-2 custom-shadow-1 bg-gray-800 rounded'>
+        {user && <div className='absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
                             {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
                             <p>{user.displayName || user.email}</p>
                             {user.isAnonymous && (<p>Guest</p>)}
                             <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
-                                <img src='../static/images/logout.png' className='w-6 h-6' alt=''/>
+                                <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
                             </div>
                         </div>
                     </div>
@@ -89,8 +92,9 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             <div className='flex items-center justify-center h-20 w-full'>
                 <p className='font-bold text-sm tracking-wider'>SAVED PLACES</p>
             </div>
-            <button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>
+            {!savedPlaces.length === 0 && (<button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>)}
             <div className='flex flex-col w-full space-y-3 p-4'>
+                {savedPlaces.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
                 {savedPlaces.map((place, index) => (
                     <div key={index} className='space-y-3'>
                         <div className='flex w-full p-2 rounded custom-shadow-1' key={place.id}>
