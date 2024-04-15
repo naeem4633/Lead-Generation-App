@@ -95,40 +95,7 @@ const createMultiplePlaces = async (req, res) => {
 };
 
 
-  
-// Update a place by its ID
-const updatePlace = async (req, res) => {
-    try {
-        const displayName = req.body.displayName.text;
-        const placeData = { ...req.body, displayName };
-        
-        const updatedPlace = await Place.findOneAndUpdate({ id: req.params.id }, placeData, { new: true });
-        
-        if (!updatedPlace) {
-            return res.status(404).json({ error: 'Place not found' });
-        }
-        
-        res.json(updatedPlace);
-    } catch (error) {
-        console.error('Error updating place:', error);
-        res.status(500).json({ error: 'Error updating place' });
-    }
-};
 
-  
-  // Get a place by its ID
-  const getPlace = async (req, res) => {
-    try {
-      const place = await Place.findOne({ id: req.params.id });
-      if (!place) {
-        return res.status(404).json({ error: 'Place not found' });
-      }
-      res.json(place);
-    } catch (error) {
-      console.error('Error fetching place:', error);
-      res.status(500).json({ error: 'Error fetching place' });
-    }
-  };
   
   // Delete a place by its ID
   const deletePlace = async (req, res) => {
@@ -166,6 +133,41 @@ const updatePlace = async (req, res) => {
     }
 };
 
+    
+  // Update a place by its ID
+  const updatePlace = async (req, res) => {
+    try {
+        const displayName = req.body.displayName.text;
+        const placeData = { ...req.body, displayName };
+        
+        const updatedPlace = await Place.findOneAndUpdate(
+          { id: req.params.id }, placeData, { new: true }
+        );
+        
+        if (!updatedPlace) {
+            return res.status(404).json({ error: 'Place not found' });
+        }
+        
+        res.json(updatedPlace);
+    } catch (error) {
+        console.error('Error updating place:', error);
+        res.status(500).json({ error: 'Error updating place' });
+    }
+  };
+  
+  // Get a place by its ID
+  const getPlace = async (req, res) => {
+    try {
+      const place = await Place.findOne({ id: req.params.id });
+      if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+      }
+      res.json(place);
+    } catch (error) {
+      console.error('Error fetching place:', error);
+      res.status(500).json({ error: 'Error fetching place' });
+    }
+  };
   
   // Get all places
   const getAllPlaces = async (req, res) => {
@@ -178,6 +180,27 @@ const updatePlace = async (req, res) => {
     }
   };
   
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+  
+  //get all places of a specific user
   const getPlacesByUserId = async (req, res) => {
     try {
         const { user_id } = req.params;

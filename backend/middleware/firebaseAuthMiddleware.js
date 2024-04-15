@@ -25,7 +25,7 @@ const validateFirebaseToken = async (req, res, next) => {
     next(); // Proceed to next middleware or route handler
   } catch (error) {
     console.error('Error verifying Firebase token:', error);
-    return res.status(401).json({ error: 'Unauthorized. Invalid Firebase token' }); // Unauthorized if token verification fails
+    return res.status(401).json({ error: 'Unauthorized. Invalid Firebase token' }); 
   }
 };
 
@@ -33,6 +33,3 @@ module.exports = {
   validateFirebaseToken
 };
 
-
-// // Apply middleware to routes that require authentication
-// app.use('/api/protected-route', validateFirebaseToken, protectedRouteHandler);

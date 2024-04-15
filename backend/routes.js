@@ -5,7 +5,6 @@ const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMul
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId, getLast50SearchAreasByUserId, getLast100SearchAreasByUserId} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId, deleteAllLeads} = require('./controllers/leadController');
 const {createSearchAreaResponseCount, getAllSearchAreaResponseCounts, getSearchAreaResponseCountById, updateSearchAreaResponseCountById, deleteSearchAreaResponseCountById, deleteAllSearchAreaResponseCounts, createMultipleSearchAreaResponseCounts} = require('./controllers/searchAreaResponseCountController');
-const {getApiKey} = require('./controllers/apiKeyController');
 const { validateFirebaseToken } = require('./middleware/firebaseAuthMiddleware.js');
 
 // Define the route for fetching nearby places
@@ -40,6 +39,17 @@ router.get('/searchAreas/by-user/:user_id', validateFirebaseToken, getSearchArea
 router.get('/last50SearchAreas/by-user/:user_id', validateFirebaseToken, getSearchAreasByUserId);
 router.get('/last100SearchAreas/by-user/:user_id', validateFirebaseToken, getSearchAreasByUserId);
 
+
+
+
+
+
+
+
+
+
+
+
 // Routes for leads 
 router.post('/lead', createLead);
 router.post('/leads', createMultipleLeads);
@@ -49,9 +59,6 @@ router.put('/leads/:id', updateLead);
 router.delete('/leads/:id', deleteLead);
 router.delete('/leadsDeleteAll', deleteAllLeads);
 router.get('/leads/by-user/:user_id', validateFirebaseToken, getLeadsByUserId);
-
-//Routes for API controller
-router.get('/api-key', getApiKey);
 
 //Routes for Search Area Response Count
 router.post("/searchAreaResponseCount", createSearchAreaResponseCount);

@@ -31,6 +31,7 @@ function Home({user}) {
         const storedValue = localStorage.getItem('searchAreaControlCounter');
         return storedValue ? parseInt(storedValue, 10) : 0;
     });
+    const SEARCH_AREA_CONTROL_LIMIT = 5;
 
     let overallIndex = 0;
     const ADMIN_USER_ID='kY2Xzs6u0wXlGVraQgyswo4CrUn2';
@@ -197,7 +198,7 @@ function Home({user}) {
         }
 
         const isAdmin = user.uid === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < 10;
+        const isBelowMaxLimit = searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT;
 
         if (isAdmin || isBelowMaxLimit) {
             const newSearchArea = { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius };
@@ -220,7 +221,7 @@ function Home({user}) {
 
         const user_id = user.uid;
         const isAdmin = user_id === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < 10;
+        const isBelowMaxLimit = searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT;
     
         if (isAdmin || isBelowMaxLimit) {
             if (latitude !== null && longitude !== null && !isNaN(radius)) {
@@ -502,14 +503,14 @@ function Home({user}) {
                 <div className="w-full">
                     <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} center={mapCenter} />
                 </div>
-                <div className='w-3/4 flex flex-col absolute top-0 right-0 select-none'>
+                <div className='w-3/4 flex flex-col absolute top-0 right-0 select-none space-y-1'>
                     {user && <div className='w-full flex justify-between items-center p-1 custom-shadow-1 bg-gray-800'>
-                        {searchAreaControlCounter < 10 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                        {searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
                             <div className='flex flex-row justify-start items-center space-x-4 text-white'>
                                 <p>{helpString}</p>
                             </div>
                         </div>)}
-                        {searchAreaControlCounter >= 10 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
+                        {searchAreaControlCounter >= SEARCH_AREA_CONTROL_LIMIT && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
                             <div className='flex flex-col justify-start items-start space-y-2 text-white'>
                                 <p className='font-semibold'>Demo Project | Search Area Limit Reached</p>
                                 <p className='text-xs'>Contact the Administrator for more info</p>
@@ -550,24 +551,24 @@ function Home({user}) {
                 
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
-                        <div className='h-2/5 2xl:h-1/3 w-full flex flex-col justify-start items-start space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
-                            <div className='flex flex-col items-start space-y-2'>
-                                <p className='font-semibold text-sm tracking-wide'>ADD SEARCH AREA</p>
+                        <div className='h-2/5 2xl:h-1/3 w-full flex flex-col justify-start items-start space-y-2 2xl:space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
+                            <div className='flex flex-col items-start space-y-1 2xl:space-y-2'>
+                                <p className='font-semibold text-xs 2xl:text-sm tracking-wide'>ADD SEARCH AREA</p>
                                 <div className='flex flex-col items-center space-y-4'>
-                                    <div className='flex justify-center items-center space-x-4'>
+                                    <div className='flex justify-center items-center space-x-4 text-xs'>
                                         <div className='flex flex-col space-y-1'>
-                                            <label className='text-xs tracking-wider font-semibold'>LAT</label>
-                                            <input id="latitude" className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
+                                            <label className='tracking-wider font-semibold'>LAT</label>
+                                            <input id="latitude" className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
                                         </div>
                                         <div className='flex flex-col space-y-1'>
-                                            <label className='text-xs tracking-wider font-semibold'>LONG</label>
-                                            <input id="longitude" className='bg-gray-800 text-white w-20 text-xs p-2 custom-shadow-3' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
+                                            <label className='tracking-wider font-semibold'>LONG</label>
+                                            <input id="longitude" className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className='flex flex-col items-start space-y-2'>
-                                <p className='font-semibold text-sm tracking-wide'>RADIUS</p>
+                            <div className='flex flex-col items-start space-y-1 2xl:space-y-2'>
+                                <p className='font-semibold text-xs 2xl:text-sm tracking-wide'>RADIUS</p>
                                 <div className='flex flex-col items-center'>
                                     <CustomRadiusSlider setRadius={setRadius}/>
                                 </div>
@@ -587,74 +588,74 @@ function Home({user}) {
                                 </div>
                             </div>
                         </div>
-                        <div className='flx-grow 2xl:h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-4 custom-shadow rounded-md'>
+                        <div className='flx-grow 2xl:h-1/6 w-full flex flex-col justify-center items-start bg-gray-50 space-y-4 px-2 py-2 2xl:py-4 custom-shadow rounded-md'>
                             <div className='w-full flex flex-col space-y-2'>
-                                <p className='font-semibold text-sm tracking-wide'>ADD MORE AREAS</p>
+                                <p className='font-semibold text-xs 2xl:text-sm tracking-wide'>ADD MORE AREAS</p>
                                 <div className='w-fit flex flex-col cursor-pointer items-start justify-center select-none space-y-1'>
                                     <div className='flex justify-between space-x-1'>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('northwest')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-45">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('north')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('northeast')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white rotate-45">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                     <div className='w-full flex flex-row items-center justify-between'>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('west')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-90">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1' onClick={() => handleDirectionClick('east')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white rotate-90">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                     <div className='flex justify-between space-x-1'>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('southwest')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white  rotate-45">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('south')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                         <div className='flex border hover:bg-gray-800 rounded-full items-center justify-center custom-shadow-1 transition-all duration-100 font-semibold p-1 rotate-180' onClick={() => handleDirectionClick('southeast')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 hover:fill-white -rotate-45">
-                                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className='h-fit 2xl:h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md'>
-                            <p className='font-semibold text-sm tracking-wide'>SHOW RECENT AREAS</p>
+                        <div className='h-fit 2xl:h-1/6 w-full flex flex-col justify-start items-start px-2 py-4 space-y-4 bg-gray-50 custom-shadow rounded-md  text-xs 2xl:text-sm'>
+                            <p className='font-semibold tracking-wide'>SHOW RECENT AREAS</p>
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
-                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLast100Click}>100</button>
-                                <button className='w-10 h-8 text-black tracking-wide text-sm transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
+                                <button className='w-10 text-black tracking-wide transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLast100Click}>100</button>
+                                <button className='w-10 text-black tracking-wide transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
                         <div className='h-1/4 2xl:h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
                             <div className='flex flex-col space-y-2'>
-                                <p className='font-semibold text-sm tracking-wide'>SEARCH OPTIONS</p>
+                                <p className='font-semibold text-x 2xl:text-sm tracking-wide'>SEARCH OPTIONS</p>
                                 <div className='flex flex-col justify-center items-start space-y-2'>  
                                     <div className='relative flex flex-col'>
                                         <input
                                             id="keyword"
-                                            className='bg-gray-800 text-white w-32 text-xs p-2 custom-shadow-3'
+                                            className='bg-gray-800 text-white w-32 text-xs p-1 2xl:p-2 custom-shadow-3'
                                             type="text"
                                             placeholder="Place Keyword"
                                             autoComplete="off"
@@ -664,7 +665,7 @@ function Home({user}) {
                                         {filteredOptions.length > 0 && (
                                             <div className='absolute top-7 bg-white mt-1 rounded-md custom-shadow-2 text-xs tracking-wide text-gray-800'>
                                                 <p className="font-semibold text-xs py-1 px-2 text-black">Suggestions</p>
-                                                <ul className="overflow-y-auto max-h-20 scrollbar scrollbar-thumb-gray-800">
+                                                <ul className="overflow-y-auto max-h-12 2xl:max-h-20 scrollbar scrollbar-thumb-gray-800">
                                                     {filteredOptions.map((option, index) => (
                                                         <li  key={index} className="py-1 px-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSuggestionClick(option)}>{option}</li>
                                                     ))}
@@ -679,7 +680,7 @@ function Home({user}) {
                                     )}
                                 </div>
                             </div>
-                            <button className='w-32 h-8 hover:bg-gray-800 hover:text-white text-black tracking-wide text-sm transition-all duration-100 custom-shadow-1 select-none' onClick={handleSearchClick}>Search</button>
+                            <button className='w-32 p-1 2xl:p-2 hover:bg-gray-800 hover:text-white text-black tracking-wide text-xs 2xl:text-sm transition-all duration-100 custom-shadow-1 select-none' onClick={handleSearchClick}>Search</button>
                         </div>
                     </div>
                 </div>      
