@@ -1,7 +1,7 @@
 import React from 'react';
 import { Map, GoogleApiWrapper, Marker, Circle } from 'google-maps-react';
 
-function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
+function GoogleMap({ google, width, height, searchAreas, onMapClick, center }) {
     
     const handleMapClick = (mapProps, map, clickEvent) => {
         onMapClick(mapProps, map, clickEvent);
@@ -13,21 +13,30 @@ function GoogleMap({ google, width, height, searchAreas, onMapClick }) {
               google={google}
               zoom={10}
               style={{ width: width, height: height }}
+              initialCenter={center}
+              center={center}
               onClick={handleMapClick}
           >
-              {/* {searchAreas.map((searchArea, index) => (
-                  <Marker key={index} position={searchArea.marker} />
-              ))} */}
+              {searchAreas.map((searchArea, index) => (
+                  <Marker 
+                  icon={{
+                    url: '../static/images/center.png',
+                    scaledSize: new window.google.maps.Size(16, 16),
+                    origin: new window.google.maps.Point(0, 0),
+                    anchor: new window.google.maps.Point(8, 8),
+                  }}
+                  key={index} position={searchArea.marker}/>
+              ))}
               {searchAreas.map((searchArea, index) => (
                   <Circle
                       key={index}
                       radius={searchArea.radius}
                       center={searchArea.marker}
                       visible={true}
-                      strokeColor="#0000FF" 
-                      strokeOpacity={0.5}
-                      strokeWeight={2}
-                      fillColor="#0000FF"
+                      strokeColor="#000000" 
+                      strokeOpacity={0.75}
+                      strokeWeight={1}
+                      fillColor="#000000"
                       fillOpacity={0.25}
                   />
               ))}

@@ -14,6 +14,7 @@ function Home({user}) {
     const firebase = useFirebase();
     const navigate = useNavigate();
     const [searchAreas, setSearchAreas] = useState([]);
+    const [mapCenter, setMapCenter] = useState({ lat: 40.7306, lng: -73.9352 });
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [currentSearchArea, setCurrentSearchArea] = useState({ user_id: '', marker: { lat: 0, lng: 0 }, radius: 0 })
     const [radius, setRadius] = useState(5000);
@@ -52,6 +53,10 @@ function Home({user}) {
     useEffect(() => {
         console.log('Places:', placesResponse);
     }, [placesResponse]);
+
+    const handleCenterChange = (newCenter) => {
+        setMapCenter(newCenter);
+    };
 
     // useEffect(() => {
     //     console.log('user in home:', user);
@@ -495,31 +500,54 @@ function Home({user}) {
         <section className='w-full flex flex-col space-y-[20vh] z-0'>
             <section className='text-xs 2xl:text-sm w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
-                    <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} />
+                    <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} center={mapCenter} />
                 </div>
-                {user && <div className='w-3/4 flex justify-between items-center absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
-                    {searchAreaControlCounter < 10 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
-                        <div className='flex flex-row justify-start items-center space-x-4 text-white'>
-                            <p>{helpString}</p>
-                        </div>
-                    </div>)}
-                    {searchAreaControlCounter >= 10 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
-                        <div className='flex flex-col justify-start items-start space-y-2 text-white'>
-                            <p className='font-semibold'>Demo Project | Search Area Limit Reached</p>
-                            <p className='text-xs'>Contact the Administrator for more info</p>
-                        </div>
-                    </div>)}
-                    <div className='w-full rounded p-2'>
-                        <div className='flex flex-row justify-end items-center space-x-4 text-white'>
-                            {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
-                            <p>{user.displayName || user.email}</p>
-                            {user.isAnonymous && (<p>Guest</p>)}
-                            <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
-                                <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
+                <div className='w-3/4 flex flex-col absolute top-0 right-0 select-none'>
+                    {user && <div className='w-full flex justify-between items-center p-1 custom-shadow-1 bg-gray-800'>
+                        {searchAreaControlCounter < 10 && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                            <div className='flex flex-row justify-start items-center space-x-4 text-white'>
+                                <p>{helpString}</p>
+                            </div>
+                        </div>)}
+                        {searchAreaControlCounter >= 10 && (<div className='absolute bg-gray-800 w-3/4 rounded p-2 tracking-wider font-light'>
+                            <div className='flex flex-col justify-start items-start space-y-2 text-white'>
+                                <p className='font-semibold'>Demo Project | Search Area Limit Reached</p>
+                                <p className='text-xs'>Contact the Administrator for more info</p>
+                            </div>
+                        </div>)}
+                        <div className='w-full rounded p-2'>
+                            <div className='flex flex-row justify-end items-center space-x-4 text-white'>
+                                {!user.isAnonymous && (<img src={user.photoURL} className='w-8 h-8 rounded-full' alt='' />)}
+                                <p>{user.displayName || user.email}</p>
+                                {user.isAnonymous && (<p>Guest</p>)}
+                                <div onClick={handleLogoutClick} className=' hover:bg-gray-600 p-2 rounded cursor-pointer transition-all duration-200'>
+                                    <img src='../static/images/logout.png' className='w-5 h-5' alt=''/>
+                                </div>
                             </div>
                         </div>
+                    </div>}
+                    <div className='w-full flex justify-evenly z-10 p-2 text-xs'>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-3 py-1 px-2' onClick={() => handleCenterChange({ lat: 40.7306, lng: -73.9352 })}>
+                            New York City, United States
+                        </button>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-1 py-1 px-2' onClick={() => handleCenterChange({ lat: 51.5072, lng: 0.1276 })}>
+                            London, United Kingdom
+                        </button>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-1 py-1 px-2' onClick={() => handleCenterChange({ lat: 41.0082, lng: 28.9784 })}>
+                            Istanbul, Turkey
+                        </button>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-1 py-1 px-2' onClick={() => handleCenterChange({ lat: -33.8651, lng: 151.2099 })}>
+                            Sydney, Austrailia
+                        </button>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-1 py-1 px-2' onClick={() => handleCenterChange({ lat: -23.5577, lng: -46.6392 })}>
+                            São Paulo, Brazil
+                        </button>
+                        <button className='bg-white hover:bg-gray-800 hover:text-gray-100 transition-all duration-200 custom-shadow-1 py-1 px-2' onClick={() => handleCenterChange({ lat: 35.6895, lng: 139.6917 })}>
+                            Tokyo, Japan
+                        </button>
                     </div>
-                </div>}
+                </div>
+                
                 <div className='absolute mx-auto h-screen w-1/4 flex custom-shadow-1'>
                     <div className='h-full w-full flex flex-col p-2 justify-center items-center bg-transparent space-y-2'>
                         <div className='h-2/5 2xl:h-1/3 w-full flex flex-col justify-start items-start space-y-4 p-2 custom-shadow bg-gray-50 rounded-md'>
