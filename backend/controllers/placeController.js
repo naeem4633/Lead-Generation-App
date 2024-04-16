@@ -94,9 +94,6 @@ const createMultiplePlaces = async (req, res) => {
   }
 };
 
-
-
-  
   // Delete a place by its ID
   const deletePlace = async (req, res) => {
     try {
@@ -179,26 +176,6 @@ const createMultiplePlaces = async (req, res) => {
       res.status(500).json({ error: 'Error fetching places' });
     }
   };
-  
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
   
   //get all places of a specific user
   const getPlacesByUserId = async (req, res) => {

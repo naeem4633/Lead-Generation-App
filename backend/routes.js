@@ -36,19 +36,8 @@ router.put('/searchAreas/:id', updateSearchArea);
 router.delete('/searchAreas/:id', deleteSearchArea);
 router.delete('/searchAreasDeleteAll/', deleteAllSearchAreas);
 router.get('/searchAreas/by-user/:user_id', validateFirebaseToken, getSearchAreasByUserId);
-router.get('/last50SearchAreas/by-user/:user_id', validateFirebaseToken, getSearchAreasByUserId);
-router.get('/last100SearchAreas/by-user/:user_id', validateFirebaseToken, getSearchAreasByUserId);
-
-
-
-
-
-
-
-
-
-
-
+router.get('/last50SearchAreas/by-user/:user_id', validateFirebaseToken, getLast50SearchAreasByUserId);
+router.get('/last100SearchAreas/by-user/:user_id', validateFirebaseToken, getLast100SearchAreasByUserId);
 
 // Routes for leads 
 router.post('/lead', createLead);

@@ -6,3 +6,5 @@ node_modules/
 
 serviceAccount.json
 serviceAccountKey.json
+
+coverage

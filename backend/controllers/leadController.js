@@ -52,7 +52,7 @@ const createMultipleLeads = async (req, res) => {
 
 const getLead = async (req, res) => {
     try {
-        const lead = await Lead.findById(req.params.id).populate('placeId');
+        const lead = await Lead.findById(req.params.id)
         if (!lead) {
             return res.status(404).json({ error: 'Lead not found' });
         }

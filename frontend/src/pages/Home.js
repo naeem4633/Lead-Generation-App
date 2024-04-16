@@ -254,6 +254,7 @@ function Home({user}) {
             const lastSearchArea = updatedSearchAreas.pop();
             setSearchAreas(updatedSearchAreas);
             setaddedSearchAreasCount(prevCount => prevCount - 1);
+            setSearchAreaControlCounter(prevCount => prevCount - 1);
     
             // Check if the lastSearchArea has an ID
             if (lastSearchArea && lastSearchArea.id) {
