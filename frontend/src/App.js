@@ -17,33 +17,57 @@ import ErrorPage from './pages/ErrorPage';
 
 function App() {
   const [user, setUser] = useState(null);
-  const firebase = useFirebase();
   const [savedPlaces, setSavedPlaces] = useState([]);
   const [leads, setLeads] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const isScreenMobile = window.innerWidth <= 700; 
     setIsMobile(isScreenMobile);
   }, []);
 
+
+
   useEffect(() => {
-    const unsubscribe = firebase.getAuth().onAuthStateChanged(user => {
+    const unsubscribe = firebase.getAuth().onAuthStateChanged(async user => {
       if (!user) {
         console.log('No user is signed in.');
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
-      }else{
-        setUser(user);  
+      } else {
+        setUser(user);
         console.log(`${user.email} is signed in.`);
-        // console.log("user in App.js", user)
+        
+        // Send a request to check user role using axios
+        try {
+          const firebaseToken = await user.getIdToken();
+          const response = await axios.get(`${backendUrl}api/check-user-role`, {
+            headers: {
+              'Authorization': `Bearer ${firebaseToken}`
+            }
+          });
+          console.log('User role:', response.data); // Log the user role
+          
+          // Check if the user has the role of admin
+          if (response.data === 'admin') {
+            setIsAdmin(true);
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error);
+        }
       }
     });
   
     return unsubscribe;
   }, [firebase]);
   
+
+
+
+
   useEffect(() => {
     const fetchSavedPlaces = async () => {
       if (!user) {
@@ -119,13 +143,12 @@ function App() {
   return (
     <Router>
       <div className="app">
-        {/* <Header /> */}
         <div className="app-body">
           <Routes>
             <Route path="/" element={<LandingPage user={user} isMobile={isMobile}/>} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login user={user} isMobile={isMobile}/>} />
-            <Route path="/home" element={<Home user={user} />} />
+            <Route path="/home" element={<Home user={user} isAdmin={isAdmin}/>} />
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
             <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads}/>} />

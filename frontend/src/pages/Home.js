@@ -10,7 +10,7 @@ import { supported_keyword_types } from '../supportedKeywordTypes';
 import {backendUrl} from '../backendUrl';
 import { useNavigate } from 'react-router-dom';
 
-function Home({user}) {
+function Home({user, isAdmin}) {
     const firebase = useFirebase();
     const navigate = useNavigate();
     const [searchAreas, setSearchAreas] = useState([]);
@@ -34,7 +34,6 @@ function Home({user}) {
     const SEARCH_AREA_CONTROL_LIMIT = 5;
 
     let overallIndex = 0;
-    const ADMIN_USER_ID='kY2Xzs6u0wXlGVraQgyswo4CrUn2';
     
 
     useEffect(() => {
@@ -61,8 +60,10 @@ function Home({user}) {
 
     // useEffect(() => {
     //     console.log('user in home:', user);
-    //     console.log('user fb token:', user.getIdToken());
     // }, [user]);
+    // useEffect(() => {
+    //     console.log('admin status:', isAdmin);
+    // }, [isAdmin]);
 
     //add a search area whenever the lat or lng values change, this is done after handleMapClick()
     useEffect(() => {
@@ -165,7 +166,7 @@ function Home({user}) {
         const lastSearchArea = searchAreas[searchAreas.length - 1];
         if (!lastSearchArea) return;
         const { lat, lng } = lastSearchArea.marker;
-        const { radius } = lastSearchArea;
+        // const { radius } = lastSearchArea;
         let newMarker;
 
         switch (direction) {
@@ -197,8 +198,7 @@ function Home({user}) {
                 newMarker = lastSearchArea.marker;
         }
 
-        const isAdmin = user.uid === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT;
+        const isBelowMaxLimit = searchAreaControlCounter <= SEARCH_AREA_CONTROL_LIMIT;
 
         if (isAdmin || isBelowMaxLimit) {
             const newSearchArea = { user_id: user.uid, marker: { lat: newMarker[0], lng: newMarker[1] }, radius };
@@ -220,8 +220,7 @@ function Home({user}) {
         }
 
         const user_id = user.uid;
-        const isAdmin = user_id === ADMIN_USER_ID; 
-        const isBelowMaxLimit = searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT;
+        const isBelowMaxLimit = searchAreaControlCounter <= SEARCH_AREA_CONTROL_LIMIT;
     
         if (isAdmin || isBelowMaxLimit) {
             if (latitude !== null && longitude !== null && !isNaN(radius)) {
@@ -506,7 +505,7 @@ function Home({user}) {
                 </div>
                 <div className='w-3/4 flex flex-col absolute top-0 right-0 select-none space-y-1'>
                     {user && <div className='w-full flex justify-between items-center p-1 custom-shadow-1 bg-gray-800'>
-                        {searchAreaControlCounter < SEARCH_AREA_CONTROL_LIMIT && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
+                        {searchAreaControlCounter <= SEARCH_AREA_CONTROL_LIMIT && helpString && helpString.length > 0 && (<div className='w-full rounded p-2 tracking-wider font-light'>
                             <div className='flex flex-row justify-start items-center space-x-4 text-white'>
                                 <p>{helpString}</p>
                             </div>
@@ -559,11 +558,15 @@ function Home({user}) {
                                     <div className='flex justify-center items-center space-x-4 text-xs'>
                                         <div className='flex flex-col space-y-1'>
                                             <label className='tracking-wider font-semibold'>LAT</label>
-                                            <input id="latitude" className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3' type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)}/>
+                                            <div className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3'>
+                                                <p>{currentSearchArea.marker.lat.toFixed(4)}</p>
+                                            </div>
                                         </div>
                                         <div className='flex flex-col space-y-1'>
                                             <label className='tracking-wider font-semibold'>LONG</label>
-                                            <input id="longitude" className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3' type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)}/>
+                                            <div className='bg-gray-800 text-white w-20 py-1 px-2 2xl:p-2 custom-shadow-3'>
+                                                <p>{currentSearchArea.marker.lng.toFixed(4)}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

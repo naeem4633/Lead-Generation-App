@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useFirebase } from '../context/firebase';
 import '../savedPlaces.css'; 
@@ -21,6 +21,25 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
         }
     };
 
+    useEffect(() => {
+        // Delay the execution of the function by 1 second
+        const timeoutId = setTimeout(() => {
+            if (savedPlaces.length > 0) {
+                const firstItemId = savedPlaces[0].id;
+                
+                // Check the first item in the list
+                setCheckedItems([firstItemId]);
+        
+                // Uncheck the first item after 1 second
+                setTimeout(() => {
+                    setCheckedItems([]);
+                }, 1000);
+            }
+        }, 500);
+    
+        return () => clearTimeout(timeoutId);
+    }, [savedPlaces]);
+
     const handleConvertToLeads = async () => {
         try {
             // Map checked items to lead objects
@@ -32,18 +51,11 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             // Send POST request to convert checked items to leads
             await axios.post(`${backendUrl}api/leads`, leads);
 
-            // Send DELETE request to delete checked items
-            await axios.delete(`${backendUrl}api/places`, { data: { ids: checkedItems } });
-
-            // Update saved places after successful conversion and deletion
-            const updatedSavedPlaces = savedPlaces.filter(place => !checkedItems.includes(place.id));
-            setSavedPlaces(updatedSavedPlaces);
-
             // Clear checked items after conversion and deletion
             setCheckedItems([]);
 
             // Handle response if necessary
-            console.log('Conversion to leads and deletion successful');
+            console.log('Conversion to leads successful');
             navigate('/leads');
         } catch (error) {
             console.error('Error converting to leads:', error);
@@ -92,9 +104,9 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             <div className='flex items-center justify-center h-20 w-full'>
                 <p className='font-bold text-sm tracking-wider'>SAVED PLACES</p>
             </div>
-            {!savedPlaces.length === 0 && (<button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>)}
+            {!savedPlaces.length == 0 && (<button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>)}
             <div className='flex flex-col w-full space-y-3 p-4'>
-                {savedPlaces.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
+                {savedPlaces.length == 0 && (<p className='w-full text-sm tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
                 {savedPlaces.map((place, index) => (
                     <div key={index} className='space-y-3'>
                         <div className='flex w-full p-2 rounded custom-shadow-1' key={place.id}>
@@ -105,10 +117,10 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
                                         checked={checkedItems.includes(place.id)}
                                         onChange={(event) => handleCheckboxChange(event, place.id)}
                                     />
-                                    <div class="checkmark">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+                                    <div className="checkmark">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="ionicon" viewBox="0 0 512 512">
                                             <title>Checkmark</title>
-                                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M416 128L192 384l-96-96"></path>
+                                            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32" d="M416 128L192 384l-96-96"></path>
                                         </svg>
                                     </div>
                                 </label>

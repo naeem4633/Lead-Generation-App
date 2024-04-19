@@ -5,7 +5,7 @@ const { createPlace, getPlace, updatePlace, deletePlace, getAllPlaces, createMul
 const {addSearchArea, addMultipleSearchAreas, getAllSearchAreas, getSearchAreaById, updateSearchArea, deleteSearchArea, addSearchAreaFromFrontend, addMultipleSearchAreasFromFrontend, getLast50SearchAreas, getLast10SearchAreas, getLast100SearchAreas, deleteAllSearchAreas, getSearchAreasByUserId, getLast50SearchAreasByUserId, getLast100SearchAreasByUserId} = require('./controllers/searchAreaController');
 const {createLead, createMultipleLeads, getLead, getAllLeads, updateLead, deleteLead, getLeadsByUserId, deleteAllLeads} = require('./controllers/leadController');
 const {createSearchAreaResponseCount, getAllSearchAreaResponseCounts, getSearchAreaResponseCountById, updateSearchAreaResponseCountById, deleteSearchAreaResponseCountById, deleteAllSearchAreaResponseCounts, createMultipleSearchAreaResponseCounts} = require('./controllers/searchAreaResponseCountController');
-const { validateFirebaseToken } = require('./middleware/firebaseAuthMiddleware.js');
+const { validateFirebaseToken, checkUserRole } = require('./middleware/firebaseAuthMiddleware.js');
 
 // Define the route for fetching nearby places
 router.post('/nearby-places', getNearbyPlaces);
@@ -57,5 +57,8 @@ router.get("/searchAreaResponseCounts/:id", getSearchAreaResponseCountById);
 router.put("/searchAreaResponseCounts/:id", updateSearchAreaResponseCountById);
 router.delete("/searchAreaResponseCounts/:id", deleteSearchAreaResponseCountById);
 router.delete("/searchAreaResponseCountsDeleteAll", deleteAllSearchAreaResponseCounts);
+
+// Firebase auth routes
+router.get("/check-user-role", checkUserRole);
 
 module.exports = router;
