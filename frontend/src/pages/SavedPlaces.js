@@ -4,11 +4,23 @@ import { useFirebase } from '../context/firebase';
 import '../savedPlaces.css'; 
 import { backendUrl } from '../backendUrl';
 import { useNavigate } from 'react-router-dom';
+import Spinner from '../components/Spinner';
 
 const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
+    let overallIndex = 0;
     const navigate = useNavigate();
     const firebase = useFirebase();
     const [checkedItems, setCheckedItems] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Simulating loading data
+    useEffect(() => {
+        const timer = setTimeout(() => {
+        setIsLoading(false);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleCheckboxChange = (event, id) => {
         const isChecked = event.target.checked;
@@ -44,7 +56,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
         try {
             // Map checked items to lead objects
             const leads = checkedItems.map(item => ({
-                placeId: item,
+                place: item,
                 user_id: user.uid,
             }));
 
@@ -61,6 +73,73 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             console.error('Error converting to leads:', error);
         }
     };
+
+    // Function to handle creating a new lead with a design issue
+    const handleDesignIssueClick = async (place) => {
+        try {
+            // Create a new lead object with the issue set to "Design"
+            const lead = {
+                place: place._id,
+                user_id: user.uid,
+                issue: 'Design'
+            };
+    
+            // Send POST request to create the lead
+            await axios.post(`${backendUrl}api/lead`, lead);
+    
+            // Update the place to set isLead to true
+            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
+    
+            // Update the savedPlaces state to reflect the change
+            const updatedSavedPlaces = savedPlaces.map(savedPlace => {
+                if (savedPlace._id === place._id) {
+                    return { ...savedPlace, isLead: true };
+                }
+                return savedPlace;
+            });
+            setSavedPlaces(updatedSavedPlaces);
+    
+            // Handle response if necessary
+            console.log('Lead with design issue created successfully');
+            // navigate('/leads');
+        } catch (error) {
+            console.error('Error creating lead with design issue:', error);
+        }
+    };
+    
+    // Function to handle creating a new lead with a SEO issue
+    const handleSeoIssueClick = async (place) => {
+        try {
+            // Create a new lead object with the issue set to "SEO"
+            const lead = {
+                place: place._id,
+                user_id: user.uid,
+                issue: 'SEO'
+            };
+    
+            // Send POST request to create the lead
+            await axios.post(`${backendUrl}api/lead`, lead);
+    
+            // Update the place to set isLead to true
+            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
+    
+            // Update the savedPlaces state to reflect the change
+            const updatedSavedPlaces = savedPlaces.map(savedPlace => {
+                if (savedPlace._id === place._id) {
+                    return { ...savedPlace, isLead: true };
+                }
+                return savedPlace;
+            });
+            setSavedPlaces(updatedSavedPlaces);
+    
+            // Handle response if necessary
+            console.log('Lead with SEO issue created successfully');
+            // navigate('/leads');
+        } catch (error) {
+            console.error('Error creating lead with SEO issue:', error);
+        }
+    };
+    
     
     const handleLogoutClick = async () => {
         try {
@@ -104,68 +183,84 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             <div className='flex items-center justify-center h-20 w-full'>
                 <p className='font-bold text-sm tracking-wider'>SAVED PLACES</p>
             </div>
-            {!savedPlaces.length == 0 && (<button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-sm rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>)}
+            {!savedPlaces.length == 0 && (<button className='h-8 border border-gray-300 hover:border-gray-900 text-black tracking-wide text-xs rounded transition-all duration-300 font-semibold px-4' onClick={handleConvertToLeads}>Convert Selected to leads</button>)}
             <div className='flex flex-col w-full space-y-3 p-4'>
-                {savedPlaces.length == 0 && (<p className='w-full text-sm tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
-                {savedPlaces.map((place, index) => (
-                    <div key={index} className='space-y-3'>
-                        <div className='flex w-full p-2 rounded custom-shadow-1' key={place.id}>
-                            <div className='flex px-4 items-center'>
-                                <label className="container">
-                                    <input
-                                        type="checkbox"
-                                        checked={checkedItems.includes(place.id)}
-                                        onChange={(event) => handleCheckboxChange(event, place.id)}
-                                    />
-                                    <div className="checkmark">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="ionicon" viewBox="0 0 512 512">
-                                            <title>Checkmark</title>
-                                            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32" d="M416 128L192 384l-96-96"></path>
-                                        </svg>
-                                    </div>
-                                </label>
+                {isLoading && savedPlaces.length == 0 && (<Spinner/>)}
+                {!isLoading && savedPlaces.length == 0 && (<p className='w-full text-xs tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
+                {savedPlaces.reverse().map((place, index) => (
+                    <div key={index} className={`space-y-3 ${place.isLead ? 'bg-green-100' : 'bg-white'}`}>
+                        <div className='flex w-full custom-shadow-1 p-2 py-4' key={place.id}>
+                            <div className='flex px-4 items-start'>
+                                <div className='flex flex-col items-center space-y-2'>
+                                    <p>{overallIndex += 1}</p>
+                                    <label className="container">
+                                        <input
+                                            type="checkbox"
+                                            checked={checkedItems.includes(place._id)}
+                                            onChange={(event) => handleCheckboxChange(event, place._id)}
+                                        />
+                                        <div className="checkmark">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="ionicon" viewBox="0 0 512 512">
+                                                <title>Checkmark</title>
+                                                <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32" d="M416 128L192 384l-96-96"></path>
+                                            </svg>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                            <div className='w-1/2 flex flex-col items-start'>
-                                <p className='p-2 font-semibold'>{place.displayName}</p>
-                                <div className='p-2 flex space-x-2 justify-center items-center text-sm'>
-                                    <div className='flex justify-center items-center space-x-2'>
+                            <div className='w-1/2 flex flex-col items-start space-y-3'>
+                                <p className='font-semibold'>{place.displayName}</p>
+                                <div className='flex space-x-1 justify-center items-center text-xs'>
+                                    <div className='flex justify-center items-center space-x-2 pl-1'>
                                         <img className='w-4 h-4 select-none' src='../static/images/star.png' alt=''/>
-                                        <p>{place.rating}</p>
+                                        <p className='font-semibold'>{place.rating}</p>
                                     </div>
-                                    <p className='text-sm' style={{ fontWeight: place.userRatingCount < 10 ? 'bold' : 'normal', color: place.userRatingCount < 10 ? 'red' : 'inherit' }}>
+                                    <p className='text-xs' style={{ fontWeight: place.userRatingCount < 10 ? 'bold' : 'normal', color: place.userRatingCount < 10 ? 'red' : 'inherit' }}>
                                         ({place.userRatingCount})
                                     </p> 
                                 </div>
-                                <div className='p-2 flex items-center justify-center space-x-2'>
-                                    <img src='../static/images/address.svg' className='w-4 h-4 select-none' alt=''/>
-                                    <p className='text-sm'>{place.formattedAddress}</p> 
-                                </div>
-                            </div>
-                            <div className='w-1/2 flex flex-col items-start text-sm'>
                                 {place.websiteUri ? (
-                                    <div className='w-full flex space-x-2 justify-start items-center p-2 hover:bg-gray-200 hover:underline rounded cursor-pointer'>
-                                        <img className='w-5 h-5 select-none' src='../static/images/link.svg' alt=''/>
-                                        <a className='' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
-                                            website
-                                        </a>
+                                    <div className='w-full flex space-x-2 justify-start items-center rounded cursor-pointer text-xs'>
+                                        <div className='w-3/4 flex space-x-2 justify-start items-center p-1'>
+                                            <a href={place.websiteUri} target="_blank" rel="noopener noreferrer" className='w-fit'>
+                                                <img className='w-4 select-none' src='../static/images/globe.png' alt=''/>
+                                            </a>
+                                            <a className='whitespace-nowrap overflow-hidden overflow-ellipsis w-[500px]' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
+                                                {place.websiteUri}
+                                            </a>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <p className='w-full p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
+                                    <p className='w-full font-semibold text-xs' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
                                 )}
+                            </div>
+                            <div className='w-1/2 flex flex-col items-start text-xs space-y-2'>
+                                <div className='flex items-center justify-center space-x-1'>
+                                    <a href={place.googleMapsUri} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img className='w-5 h-5 select-none' src='../static/images/google.svg' alt=''/>
+                                    </a>
+                                    <p className='text-xs'>{place.formattedAddress}</p> 
+                                </div>
                                 {place.internationalPhoneNumber ? (
-                                    <div className='flex space-x-2 justify-center p-2 items-center'>
+                                    <div className='flex space-x-2 justify-center pl-1 items-center'>
                                         <img src='../static/images/phone.svg' className='w-5 h-5 select-none' alt=''/>
-                                        <p className='w-full rounded cursor-pointer text-center'>{place.internationalPhoneNumber}</p>
+                                        <p className='w-full rounded text-center'>{place.internationalPhoneNumber}</p>
                                     </div>
                                 ) : (
-                                    <p className='p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
+                                    <p className='font-semibold pl-1' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
                                 )}
                                 {place.businessStatus !== 'OPERATIONAL' && (
-                                    <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
+                                    <p className='' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
                                 )}
-                                <div className='flex p-2 space-x-2 items-center justify-center'>
-                                    <img className='w-5 h-5 select-none' src='../static/images/google.svg' alt=''/>
-                                    <a className='hover:underline' href={place.googleMapsUri} target="_blank" rel="noopener noreferrer">{place.googleMapsUri}</a>
+                                <div className='flex items-center justify-center pt-2 space-x-2'>
+                                    <div className={`w-24 flex flex-col space-y-1 justify-center items-center p-1 ${!place.isLead ? 'hover:bg-gray-100 cursor-pointer custom-shadow' : 'bg-transparent cursor-default'}`} onClick={() => !place.isLead && handleDesignIssueClick(place)}>
+                                        <img src='../static/images/design.png' className='w-5 h-5 select-none' alt=''/>
+                                        <p className='rounded'>DESIGN ISSUE</p>
+                                    </div>
+                                    <div className={`w-24 flex flex-col space-y-1 justify-center p-1 items-center ${!place.isLead ? 'hover:bg-gray-100 cursor-pointer custom-shadow ' : 'bg-transparent cursor-default'}`} onClick={() => !place.isLead && handleSeoIssueClick(place)}>
+                                        <img src='../static/images/seo.png' className='w-5 h-5 select-none' alt=''/>
+                                        <p className='rounded'>SEO ISSUE</p>
+                                    </div>
                                 </div>
                             </div>
                             <div className='flex px-4 items-center'>

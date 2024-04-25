@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.String, ref: 'User' },
-    placeId: { type: mongoose.Schema.Types.String, required: true },
+    place: { type: mongoose.Schema.Types.ObjectId, ref: 'Place', required: true },
     issue: { type: String, required: false, default: 'Not Defined' },
-    contactedVia: { type: String, required: false, default: 'N/A' },
-    responseReceived: { type: Boolean, default: false, default: false },
+    contactedViaEmail: { type: Boolean, default: false },
+    contactedViaDm: { type: Boolean, default: false },
+    contactedViaFb: { type: Boolean, default: false },
+    responseReceived: { type: Boolean, default: false },
     responseVia: { type: String, default: 'N/A' },
     response: { type: String, default: 'N/A' }
 });

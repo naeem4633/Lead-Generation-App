@@ -5,10 +5,10 @@ const apiKey = process.env.API_KEY;
 async function getMultipleNearbyPlaces(req, res) {
   try {
     // Ensure searchAreas is defined and is an array
-    const { keywordArray, searchAreas } = req.body;
+    const { keywordArray, excludedKeywordArray, searchAreas } = req.body;
 
-    if (!Array.isArray(keywordArray) || !Array.isArray(searchAreas)) {
-      return res.status(400).json({ error: 'Keyword array or search areas array is missing or invalid' });
+    if (!Array.isArray(keywordArray) || !Array.isArray(excludedKeywordArray) || !Array.isArray(searchAreas)) {
+      return res.status(400).json({ error: 'Keyword array, excluded keyword array, or search areas array is missing or invalid' });
     }
 
     // Array to store results
@@ -26,7 +26,7 @@ async function getMultipleNearbyPlaces(req, res) {
       }
 
       // Call fetchNearbyPlacesFromGoogle function for each search area
-      let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius, keywordArray);
+      let nearbyPlace = await fetchNearbyPlacesFromGoogle(apiKey, lat, lng, radius, keywordArray, excludedKeywordArray);
 
       // Check if the response is empty (contains no places)
       if (Object.keys(nearbyPlace).length === 0) {
@@ -39,6 +39,7 @@ async function getMultipleNearbyPlaces(req, res) {
         longitude: lng,
         radius: radius,
         included_types: keywordArray,
+        excluded_types: excludedKeywordArray,
         response_count: responseCount
       };
       searchAreaResponseCounts.push(searchAreaResponseCount);
@@ -60,7 +61,6 @@ async function getMultipleNearbyPlaces(req, res) {
     res.status(500).json({ error: 'Error fetching nearby places' });
   }
 }
-
 
 
 //function to process data and call fetchNearbyPlacesFromGoogle
@@ -92,12 +92,10 @@ async function getNearbyPlaces(req, res) {
 
 
 //Function to fetch nearby places
-async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius, keywordArray) {
+async function fetchNearbyPlacesFromGoogle(apiKey, latitude, longitude, radius, keywordArray, excludedKeywordArray) {
   const requestData = {
-    // includedTypes: ["gym", "fitness_center"],
     includedTypes: keywordArray,
-    /* excludedTypes: ["community_center", "university", "golf_course", "spa", "swimming_pool", 
-    "physiotherapist", "sports_complex", "sports_club"],*/
+    excludedTypes: excludedKeywordArray,
     maxResultCount: 20,
     locationRestriction: {
       circle: {

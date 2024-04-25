@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
 import Home from './pages/Home';
-import SearchResults from './pages/SearchResults';
-import { samplePlaceData } from './samplePlaceData';
 import LandingPage from './pages/LandingPage';
 import SavedPlaces from './pages/SavedPlaces';
 import Leads from './pages/leads';
@@ -24,11 +21,9 @@ function App() {
   const firebase = useFirebase();
 
   useEffect(() => {
-    const isScreenMobile = window.innerWidth <= 700; 
+    const isScreenMobile = window.innerWidth <= 700;
     setIsMobile(isScreenMobile);
   }, []);
-
-
 
   useEffect(() => {
     const unsubscribe = firebase.getAuth().onAuthStateChanged(async user => {
@@ -88,7 +83,8 @@ function App() {
         });
 
         if (response.status === 200) {
-          setSavedPlaces(response.data);
+          const savedPlacesReversed = response.data.reverse()
+          setSavedPlaces(savedPlacesReversed);
         } else {
           console.error('Failed to fetch saved places');
         }
@@ -149,7 +145,6 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login user={user} isMobile={isMobile}/>} />
             <Route path="/home" element={<Home user={user} isAdmin={isAdmin}/>} />
-            <Route path="/search-results" element={<SearchResults />} />
             <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
             <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads}/>} />
             <Route path="*" element={<ErrorPage/>} />

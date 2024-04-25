@@ -24,12 +24,23 @@ function Home({user, isAdmin}) {
     const [invalidKeyword, setInvalidKeyword] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [keyword, setKeyword] = useState('');
+    const [excludedKeyword, setExcludedKeyword] = useState('');
+    const [invalidExcludedKeyword, setInvalidExcludedKeyword] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState([]);
+    const [excludedFilteredOptions, setExcludedFilteredOptions] = useState([]);
     const [helpString, setHelpString] = useState('');
     const [saveButtonText, setSaveButtonText] = useState('Save Results');
     const [searchAreaControlCounter, setSearchAreaControlCounter] = useState(() => {
         const storedValue = localStorage.getItem('searchAreaControlCounter');
         return storedValue ? parseInt(storedValue, 10) : 0;
+    });
+    const [keywordArray, setKeywordArray] = useState(() => {
+        const storedKeywords = localStorage.getItem('processedKeywords');
+        return storedKeywords ? JSON.parse(storedKeywords) : [];
+    });
+    const [excludedKeywordArray, setExcludedKeywordArray] = useState(() => {
+        const storedExcludedKeywords = localStorage.getItem('processedExcludedKeywords');
+        return storedExcludedKeywords ? JSON.parse(storedExcludedKeywords) : [];
     });
     const SEARCH_AREA_CONTROL_LIMIT = 5;
 
@@ -322,7 +333,7 @@ function Home({user, isAdmin}) {
         }
       };
 
-      const handleMapClick = (mapProps, map, clickEvent) => {
+    const handleMapClick = (mapProps, map, clickEvent) => {
         const { latLng } = clickEvent;
         const lat = parseFloat(latLng.lat().toFixed(4));
         const lng = parseFloat(latLng.lng().toFixed(4));
@@ -334,53 +345,42 @@ function Home({user, isAdmin}) {
         setInvalidKeyword(false);
         setIsSearching(true); // Set isSearching to true before making the request
     
-        const keywordInput = document.getElementById('keyword');
-        if (!keywordInput) {
-            console.error('Input field with id "keyword" not found');
-            setIsSearching(false); // Set isSearching to false if the keyword input field is not found
-            return;
-        }
-      
-        const keyword = keywordInput.value;
-      
         // Process the keyword input
-        let keywordArray = [];
-        if (keyword) {
-            // Split the input by comma if it contains commas
-            keywordArray = keyword.includes(',') ? keyword.split(',') : [keyword];
-            // Trim whitespaces from each keyword and remove empty strings
-            keywordArray = keywordArray.map(keyword => keyword.trim()).filter(Boolean);
-          
-            // Replace spaces with underscores for keywords with two words
-            keywordArray = keywordArray.map(keyword => {
-                if (keyword.includes(' ')) {
-                    return keyword.replace(/\s+/g, '_');
-                } else {
-                    return keyword;
+        let processedKeywords = [];
+        if (keywordArray.length > 0) {
+            // Validate and process each keyword
+            processedKeywords = keywordArray.map(keyword => {
+                const trimmedKeyword = keyword.trim();
+                if (!isValidKeyword(trimmedKeyword)) {
+                    setInvalidKeyword(true);
+                    setIsSearching(false);
                 }
+                return trimmedKeyword;
             });
-        }
-      
-        console.log('Keyword Array:', keywordArray);
-      
-        // Validate each keyword in the array
-        for (const kw of keywordArray) {
-            if (!isValidKeyword(kw)) {
-                console.log('Invalid keyword:', kw);
-                setInvalidKeyword(true);
-                setIsSearching(false);
-                return;
-            }
+        } else {
+            console.error('No keywords entered');
+            setInvalidKeyword(true);
+            setIsSearching(false);
+            return;
         }
     
-        // Check if the keyword is empty
-        if (!keyword.trim()) {
-            console.error('Keyword is empty');
-            setInvalidKeyword(true);
-            setIsSearching(false); // Set isSearching to false if the keyword is empty
-            return;
+        // Process the excluded keyword input
+        let processedExcludedKeywords = [];
+        if (excludedKeywordArray.length > 0) {
+            // Validate and process each excluded keyword
+            processedExcludedKeywords = excludedKeywordArray.map(keyword => {
+                const trimmedExcludedKeyword = keyword.trim();
+                if (!isValidKeyword(trimmedExcludedKeyword)) {
+                    setInvalidKeyword(true);
+                    setIsSearching(false);
+                }
+                return trimmedExcludedKeyword;
+            });
         }
-      
+    
+        console.log('Processed Keywords:', processedKeywords);
+        console.log('Processed Excluded Keywords:', processedExcludedKeywords);
+    
         try {
             // Slice the searchAreas array to include only the recently added search areas
             console.log("added search areas count when sending request" + addedSearchAreasCount)
@@ -399,14 +399,23 @@ function Home({user, isAdmin}) {
             });
         
             console.log('Search areas sent successfully');
-            console.log("kwyword array being sent" + keywordArray)
+            console.log("keyword array being sent" + processedKeywords);
+            console.log("excluded keyword array being sent" + processedExcludedKeywords);
+
+            // Save processed keywords and excluded keywords to local storage
+            localStorage.setItem('processedKeywords', JSON.stringify(processedKeywords));
+            localStorage.setItem('processedExcludedKeywords', JSON.stringify(processedExcludedKeywords));
     
-            console.log("recent search areas wen sending req length" + recentSearchAreas.length)
+            console.log("recent search areas when sending req length" + recentSearchAreas.length)
     
         
             const nearbyPlacesResponse = await axios.post(
                 `${backendUrl}api/multiple-nearby-places`,
-                { searchAreas: recentSearchAreas, keywordArray },
+                { 
+                    searchAreas: recentSearchAreas, 
+                    keywordArray: processedKeywords,
+                    excludedKeywordArray: processedExcludedKeywords
+                },
                 {
                     headers: {
                         'Content-Type': 'application/json'
@@ -420,8 +429,8 @@ function Home({user, isAdmin}) {
             console.log("searcharearesponse counts length: " , nearbyPlacesResponse.data.searchAreaResponseCounts.length);
             setaddedSearchAreasCount(0);
             setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data.nearbyPlaces]);
-
-            //send the seearch area response count objects back to the relevant path for storage
+    
+            //send the search area response count objects back to the relevant path for storage
             try {
                 const searchAreaResponseCounts = nearbyPlacesResponse.data.searchAreaResponseCounts;
                 await axios.post(`${backendUrl}api/searchAreaResponseCounts`, searchAreaResponseCounts, {
@@ -440,6 +449,7 @@ function Home({user, isAdmin}) {
             smoothScrollTo(0, window.innerHeight * 1.25, 800);
         }
     };
+    
 
     const handleLogoutClick = async () => {
         try {
@@ -447,6 +457,21 @@ function Home({user, isAdmin}) {
             console.log("User signed out successfully");
         } catch (error) {
             console.error('Error logging out:', error);
+        }
+    };
+
+    const handleDeleteClick = async (id) => {
+        try {
+            // Filter out the deleted place from each placesObject in placesResponse
+            const updatedPlacesResponse = placesResponse.map(placesObject => ({
+                ...placesObject,
+                places: placesObject.places.filter(place => place.id !== id)
+            }));
+    
+            setPlacesResponse(updatedPlacesResponse);
+            console.log(`Place with ID ${id} deleted successfully`);
+        } catch (error) {
+            console.error('Error deleting place:', error);
         }
     };
 
@@ -463,9 +488,43 @@ function Home({user, isAdmin}) {
     };
 
     const handleSuggestionClick = (option) => {
-        setKeyword(option);
+        setKeyword('');
+        setKeywordArray(prevArray => [...prevArray, option]);
         setFilteredOptions([]);
     };
+
+    const removeKeyword = (index) => {
+        const updatedKeywords = [...keywordArray];
+        updatedKeywords.splice(index, 1);
+        setKeywordArray(updatedKeywords);
+        localStorage.setItem('processedKeywords', JSON.stringify(updatedKeywords));
+    };
+
+    const handleExcludedKeywordChange = (event) => {
+        const userInput = event.target.value.toLowerCase();
+        const filtered = Object.keys(supported_keyword_types).reduce((acc, category) => {
+            const options = supported_keyword_types[category].filter(option =>
+                option.includes(userInput)
+            );
+            return [...acc, ...options];
+        }, []);
+        setExcludedKeyword(userInput);
+        setExcludedFilteredOptions(filtered);
+    };
+
+    const handleExcludedSuggestionClick = (option) => {
+        setExcludedKeyword('');
+        setExcludedKeywordArray(prevArray => [...prevArray, option]);
+        setExcludedFilteredOptions([]);
+    };
+
+    const removeExcludedKeyword = (index) => {
+        const updatedExcludedKeywords = [...excludedKeywordArray];
+        updatedExcludedKeywords.splice(index, 1);
+        setExcludedKeywordArray(updatedExcludedKeywords);
+        localStorage.setItem('processedExcludedKeywords', JSON.stringify(updatedExcludedKeywords));
+    };
+    
 
     const smoothScrollTo = (endX, endY, duration) => {
         const startX = window.scrollX;
@@ -652,26 +711,42 @@ function Home({user, isAdmin}) {
                                 <button className='w-10 text-black tracking-wide transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
                             </div>
                         </div>
-                        <div className='h-1/4 2xl:h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-8 px-2 py-4 custom-shadow rounded-md'>
+                        <div className='h-1/4 2xl:h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-2 px-2 py-4 custom-shadow rounded-md'>
+                            {/* Include Types Section */}
                             <div className='flex flex-col space-y-2'>
-                                <p className='font-semibold text-x 2xl:text-sm tracking-wide'>SEARCH OPTIONS</p>
-                                <div className='flex flex-col justify-center items-start space-y-2'>  
+                                <p className='font-semibold text-xs tracking-wide'>INCLUDE TYPES</p>
+                                <div className='flex flex-col justify-center items-start space-y-2'>
                                     <div className='relative flex flex-col'>
+                                        {/* Keyword input field for inclusion types */}
                                         <input
                                             id="keyword"
                                             className='bg-gray-800 text-white w-32 text-xs p-1 2xl:p-2 custom-shadow-3'
                                             type="text"
-                                            placeholder="Place Keyword"
+                                            placeholder="Keyword"
                                             autoComplete="off"
                                             value={keyword}
                                             onChange={handleKeywordChange}
                                         />
+                                        {/* Display selected inclusion types as tags */}
+                                        <div className="flex flex-wrap mt-2">
+                                            {keywordArray.map((kw, index) => (
+                                                <div key={index} className="bg-gray-200 text-gray-700 text-xs p-1 rounded mr-1 flex items-center">
+                                                    {kw}
+                                                    <button className="ml-1 focus:outline-none" onClick={() => removeKeyword(index)}>
+                                                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* Display suggestions for inclusion types */}
                                         {filteredOptions.length > 0 && (
-                                            <div className='absolute top-7 bg-white mt-1 rounded-md custom-shadow-2 text-xs tracking-wide text-gray-800'>
+                                            <div className='absolute z-50 top-7 bg-white mt-1 rounded-md custom-shadow-2 text-xs tracking-wide text-gray-800'>
                                                 <p className="font-semibold text-xs py-1 px-2 text-black">Suggestions</p>
                                                 <ul className="overflow-y-auto max-h-12 2xl:max-h-20 scrollbar scrollbar-thumb-gray-800">
                                                     {filteredOptions.map((option, index) => (
-                                                        <li  key={index} className="py-1 px-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSuggestionClick(option)}>{option}</li>
+                                                        <li key={index} className="py-1 px-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSuggestionClick(option)}>{option}</li>
                                                     ))}
                                                 </ul>
                                             </div>
@@ -679,12 +754,62 @@ function Home({user, isAdmin}) {
                                     </div>
                                     {invalidKeyword && (
                                         <div>
-                                        <p className="font-semibold text-red-500 text-sm">Empty / Invalid keyword</p>
+                                            <p className="font-semibold text-red-500 text-xs">Empty / Invalid keyword</p>
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <button className='w-32 p-1 2xl:p-2 hover:bg-gray-800 hover:text-white text-black tracking-wide text-xs 2xl:text-sm transition-all duration-100 custom-shadow-1 select-none' onClick={handleSearchClick}>Search</button>
+                            {/* Exclude Types Section */}
+                            <div className='flex flex-col space-y-2'>
+                                <p className='font-semibold text-xs tracking-wide'>EXCLUDE TYPES</p>
+                                <div className='flex flex-col justify-center items-start space-y-2'>
+                                    <div className='relative flex flex-col'>
+                                        {/* Keyword input field for exclusion types */}
+                                        <input
+                                            id="excludedKeyword"
+                                            className='bg-gray-800 text-white w-32 text-xs p-1 2xl:p-2 custom-shadow-3'
+                                            type="text"
+                                            placeholder="Keyword"
+                                            autoComplete="off"
+                                            value={excludedKeyword}
+                                            onChange={handleExcludedKeywordChange}
+                                        />
+                                        {/* Display selected exclusion types as tags */}
+                                        <div className="flex flex-wrap mt-2">
+                                            {excludedKeywordArray.map((kw, index) => (
+                                                <div key={index} className="bg-gray-200 text-gray-700 text-xs p-1 rounded mr-1 flex items-center">
+                                                    {kw}
+                                                    <button className="ml-1 focus:outline-none" onClick={() => removeExcludedKeyword(index)}>
+                                                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* Display suggestions for exclusion types */}
+                                        {excludedFilteredOptions.length > 0 && (
+                                            <div className='absolute z-50 top-7 bg-white mt-1 rounded-md custom-shadow-2 text-xs tracking-wide text-gray-800'>
+                                                <p className="font-semibold text-xs py-1 px-2 text-black">Suggestions</p>
+                                                <ul className="overflow-y-auto max-h-12 2xl:max-h-20 scrollbar scrollbar-thumb-gray-800">
+                                                    {excludedFilteredOptions.map((option, index) => (
+                                                        <li key={index} className="py-1 px-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleExcludedSuggestionClick(option)}>{option}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {invalidExcludedKeyword && (
+                                        <div>
+                                            <p className="font-semibold text-red-500 text-xs">Empty / Invalid keyword</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Search button */}
+                            <div className='pt-2'>
+                                <button className='w-32 p-1 2xl:p-2 hover:bg-gray-800 hover:text-white text-black tracking-wide text-xs 2xl:text-sm transition-all duration-100 custom-shadow-1 select-none' onClick={handleSearchClick}>Search</button>
+                            </div>
                         </div>
                     </div>
                 </div>      
@@ -702,47 +827,54 @@ function Home({user, isAdmin}) {
                                         <div className='flex px-4 items-center'>
                                             <p>{overallIndex += 1}</p>
                                         </div>
-                                        <div className='w-1/2 flex flex-col items-start'>
-                                            <p className='p-2 font-semibold'>{place.displayName.text}</p>
-                                            <div className='p-2 flex space-x-2 justify-center items-center text-sm'>
-                                                <div className='flex justify-center items-center space-x-2'>
-                                                    <img className='w-4 h-4 select-none' src='../static/images/star.png' alt=''/>
-                                                    <p>{place.rating}</p>
-                                                </div>
-                                                <p className='text-sm' style={{ fontWeight: place.userRatingCount < 10 ? 'bold' : 'normal', color: place.userRatingCount < 10 ? 'red' : 'inherit' }}>
-                                                    ({place.userRatingCount})
-                                                </p> 
-                                            </div>
-                                            <div className='p-2 flex items-center justify-center space-x-2'>
-                                                <img src='../static/images/address.svg' className='w-4 h-4 select-none' alt=''/>
-                                                <p className='text-sm'>{place.formattedAddress}</p> 
-                                            </div>
+                                        <div className='w-1/2 flex flex-col items-start space-y-3'>
+                                <p className='font-semibold'>{place.displayName.text}</p>
+                                <div className='flex space-x-1 justify-center items-center text-xs'>
+                                    <div className='flex justify-center items-center space-x-2 pl-1'>
+                                        <img className='w-4 h-4 select-none' src='../static/images/star.png' alt=''/>
+                                        <p className='font-semibold'>{place.rating}</p>
+                                    </div>
+                                    <p className='text-xs' style={{ fontWeight: place.userRatingCount < 10 ? 'bold' : 'normal', color: place.userRatingCount < 10 ? 'red' : 'inherit' }}>
+                                        ({place.userRatingCount})
+                                    </p> 
+                                </div>
+                                {place.websiteUri ? (
+                                    <div className='w-full flex space-x-2 justify-start items-center rounded cursor-pointer text-xs'>
+                                        <div className='w-3/4 flex space-x-2 justify-start items-center p-1'>
+                                            <a href={place.websiteUri} target="_blank" rel="noopener noreferrer" className='w-fit'>
+                                                <img className='w-4 select-none' src='../static/images/globe.png' alt=''/>
+                                            </a>
+                                            <a className='whitespace-nowrap overflow-hidden overflow-ellipsis w-[500px]' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
+                                                {place.websiteUri}
+                                            </a>
                                         </div>
-                                        <div className='w-1/2 flex flex-col items-start text-sm'>
-                                            {place.websiteUri ? (
-                                                <div className='w-full flex space-x-2 justify-start items-center p-2 hover:bg-gray-200 hover:underline rounded cursor-pointer'>
-                                                    <img className='w-5 h-5 select-none' src='../static/images/globe.png' alt=''/>
-                                                    <a className='' href={place.websiteUri} target="_blank" rel="noopener noreferrer">
-                                                        website
-                                                    </a>
-                                                </div>
-                                            ) : (
-                                                <p className='w-full p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
-                                            )}
-                                            {place.internationalPhoneNumber ? (
-                                                <div className='flex space-x-2 justify-center p-2 items-center'>
-                                                    <img src='../static/images/phone.svg' className='w-5 h-5 select-none' alt=''/>
-                                                    <p className='w-full rounded cursor-pointer text-center'>{place.internationalPhoneNumber}</p>
-                                                </div>
-                                            ) : (
-                                                <p className='p-2 font-semibold' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
-                                            )}
-                                            {place.businessStatus !== 'OPERATIONAL' && (
-                                                <p className='p-2' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
-                                            )}
-                                            <div className='flex p-2 space-x-2 items-center justify-center'>
-                                                <img className='w-5 h-5 select-none' src='../static/images/google.svg' alt=''/>
-                                                <a className='hover:underline' href={place.googleMapsUri} target="_blank" rel="noopener noreferrer">{place.googleMapsUri}</a>
+                                    </div>
+                                ) : (
+                                    <p className='w-full font-semibold text-xs' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
+                                )}
+                            </div>
+                            <div className='w-1/2 flex flex-col items-start text-xs space-y-2'>
+                                <div className='flex items-center justify-center space-x-1'>
+                                    <a href={place.googleMapsUri} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img className='w-5 h-5 select-none' src='../static/images/google.svg' alt=''/>
+                                    </a>
+                                    <p className='text-xs'>{place.formattedAddress}</p> 
+                                </div>
+                                {place.internationalPhoneNumber ? (
+                                    <div className='flex space-x-2 justify-center pl-1 items-center'>
+                                        <img src='../static/images/phone.svg' className='w-5 h-5 select-none' alt=''/>
+                                        <p className='w-full rounded text-center'>{place.internationalPhoneNumber}</p>
+                                    </div>
+                                ) : (
+                                    <p className='font-semibold pl-1' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
+                                )}
+                                {place.businessStatus !== 'OPERATIONAL' && (
+                                    <p className='' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
+                                )}
+                            </div>
+                                        <div className='flex px-4 items-center'>
+                                            <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
+                                                <img onClick={() => handleDeleteClick(place.id)} className='w-6 h-6' src='../static/images/trash.png' alt=''/>
                                             </div>
                                         </div>
                                     </div>

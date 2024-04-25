@@ -36,7 +36,7 @@ const CustomRadiusSlider = ({ setRadius }) => {
   };
 
   return (
-    <div className='w-full flex flex-col justify-between items-start space-y-2'>
+    <div className='w-full flex flex-col justify-between items-start space-y-2 select-none'>
       <input
         id="radius"
         className='bg-gray-800 w-20 text-xs custom-shadow-3 text-white py-1 px-2 2xl:p-2'

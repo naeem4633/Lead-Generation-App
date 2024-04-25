@@ -6,7 +6,7 @@ const createLead = async (req, res) => {
         // Check if lead with the same user ID and place ID already exists
         const existingLead = await Lead.findOne({
             user_id: req.body.user_id,
-            placeId: req.body.placeId
+            place: req.body.place
         });
 
         if (existingLead) {
@@ -29,14 +29,14 @@ const createMultipleLeads = async (req, res) => {
         // Check if any of the leads already exist
         const existingLeads = await Lead.find({
             user_id: { $in: req.body.map(lead => lead.user_id) },
-            placeId: { $in: req.body.map(lead => lead.placeId) }
+            place: { $in: req.body.map(lead => lead.place) }
         });
 
         // Filter out existing leads from the request body
         const newLeads = req.body.filter(lead => {
             return !existingLeads.some(existingLead =>
                 existingLead.user_id === lead.user_id &&
-                existingLead.placeId === lead.placeId
+                existingLead.place === lead.place
             );
         });
 
@@ -52,7 +52,7 @@ const createMultipleLeads = async (req, res) => {
 
 const getLead = async (req, res) => {
     try {
-        const lead = await Lead.findById(req.params.id)
+        const lead = await Lead.findById(req.params.id).populate('place');
         if (!lead) {
             return res.status(404).json({ error: 'Lead not found' });
         }
@@ -66,7 +66,7 @@ const getLead = async (req, res) => {
 // Get all leads
 const getAllLeads = async (req, res) => {
     try {
-        const leads = await Lead.find().populate('placeId');
+        const leads = await Lead.find().populate('place');
         res.json(leads);
     } catch (error) {
         console.error('Error fetching leads:', error);
@@ -106,7 +106,7 @@ const deleteLead = async (req, res) => {
 const getLeadsByUserId = async (req, res) => {
     try {
         const { user_id } = req.params;
-        const leads = await Lead.find({ user_id });
+        const leads = await Lead.find({ user_id }).populate('place');
         if (leads.length === 0) {
             return res.status(404).json({ message: 'No leads found for user' });
         }

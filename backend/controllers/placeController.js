@@ -134,11 +134,10 @@ const createMultiplePlaces = async (req, res) => {
   // Update a place by its ID
   const updatePlace = async (req, res) => {
     try {
-        const displayName = req.body.displayName.text;
-        const placeData = { ...req.body, displayName };
+        const { isLead } = req.body;
         
         const updatedPlace = await Place.findOneAndUpdate(
-          { id: req.params.id }, placeData, { new: true }
+          { id: req.params.id }, { isLead }, { new: true }
         );
         
         if (!updatedPlace) {
@@ -150,7 +149,7 @@ const createMultiplePlaces = async (req, res) => {
         console.error('Error updating place:', error);
         res.status(500).json({ error: 'Error updating place' });
     }
-  };
+};
   
   // Get a place by its ID
   const getPlace = async (req, res) => {

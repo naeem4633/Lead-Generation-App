@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useFirebase } from '../context/firebase';
 import {backendUrl} from '../backendUrl';
+import Spinner from '../components/Spinner';
 
 const Leads = ({leads, setLeads, user}) => {
+    let overallIndex = 0;
     const firebase = useFirebase();
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Simulating loading data
+    useEffect(() => {
+        const timer = setTimeout(() => {
+        setIsLoading(false);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, []);
     
     const handleLogoutClick = async () => {
         try {
@@ -17,7 +29,7 @@ const Leads = ({leads, setLeads, user}) => {
 
     const handleDeleteClick = async (id) => {
         try {
-            const response = await axios.delete(`${backendUrl}/api/leads/${id}`);
+            const response = await axios.delete(`${backendUrl}api/leads/${id}`);
             if (response.status === 200) {
                 const updatedLeads = leads.filter(lead => lead._id !== id);
                 setLeads(updatedLeads);
@@ -27,6 +39,23 @@ const Leads = ({leads, setLeads, user}) => {
             }
         } catch (error) {
             console.error('Error deleting lead:', error);
+        }
+    };
+    
+    const handleContactedViaClick = async (leadId, contactedVia) => {
+        try {
+            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
+                [contactedVia]: !leads.find(lead => lead._id === leadId)[contactedVia]
+            });
+            setLeads(prevLeads => prevLeads.map(lead => {
+                if (lead._id === leadId) {
+                    return { ...lead, [contactedVia]: !lead[contactedVia] };
+                }
+                return lead;
+            }));
+            // console.log('Lead updated:', updatedLead.data);
+        } catch (error) {
+            console.error('Error updating lead:', error);
         }
     };
 
@@ -49,31 +78,93 @@ const Leads = ({leads, setLeads, user}) => {
                 <p className='font-bold text-sm tracking-wider'>LEADS</p>
             </div>
             <div className='flex flex-col w-full space-y-3 p-4'>
-                {leads.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
+                {isLoading && leads.length == 0 && (<Spinner/>)}
+                {!isLoading && leads.length == 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
                 {leads.map((lead, index) => (
                     <div key={index} className='space-y-3'>
-                        <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-gray-100 rounded custom-shadow-1' key={lead._id}>
-                            <div className='w-1/2 flex flex-col items-start'>
-                                <p className='p-2 font-semibold hover:underline cursor-pointer'>Place ID: {lead.placeId}</p>
-                                <div className='p-2 flex items-center justify-center space-x-2'>
-                                    <p className='text-sm'>Issue: {lead.issue}</p> 
-                                </div>
-                                <div className='w-full flex space-x-2 justify-start items-center p-2 rounded text-sm'>
-                                    <p>Contacted Via: {lead.contactedVia}</p>
-                                </div>
-                            </div>
-                            <div className='w-1/2 flex flex-col items-start text-sm'>
-                                <div className='flex space-x-2 justify-center p-2 items-center'>
-                                    {lead.responseReceived ? (<p className='w-full rounded text-center text-green-500 font-semibold'>Response received</p>) : (<p className='w-full rounded text-center'>Not Responded</p>)}
-                                </div>
-                                {lead.responseReceived && (<div className='flex space-x-2 justify-center p-2 items-center'>
-                                    <p className='w-full rounded text-center'>Responded Via: {lead.responseVia}</p>
-                                </div>)}
-                                <div className='flex p-2 space-x-2 items-center justify-center'>
-                                <p className='w-full rounded text-center'>Response: {lead.response}</p>
-                                </div>
-                            </div>
+                        <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-white custom-shadow-1' key={lead._id}>
                             <div className='flex px-4 items-center'>
+                                <p>{overallIndex += 1}</p>
+                            </div>
+                            <div className='w-1/2 flex flex-col items-start space-y-2'>
+                                <p className='font-semibold'>{lead.place.displayName}</p>
+                                <div className='flex space-x-1 justify-center items-center text-xs'>
+                                    <div className='flex justify-center items-center space-x-2 pl-1'>
+                                        <img className='w-3 h-3 select-none' src='../static/images/star.png' alt=''/>
+                                        <p className='font-semibold'>{lead.place.rating}</p>
+                                    </div>
+                                    <p className='text-xs' style={{ fontWeight: lead.place.userRatingCount < 10 ? 'bold' : 'normal', color: lead.place.userRatingCount < 10 ? 'red' : 'inherit' }}>
+                                        ({lead.place.userRatingCount})
+                                    </p> 
+                                </div>
+                                {lead.place.websiteUri ? (
+                                    <div className='w-full flex space-x-2 justify-start items-center rounded cursor-pointer text-xs'>
+                                        <div className='w-3/4 flex space-x-2 justify-start items-center p-1'>
+                                            <a href={lead.place.websiteUri} target="_blank" rel="noopener noreferrer" className='w-fit'>
+                                                <img className='w-3 select-none' src='../static/images/globe.png' alt=''/>
+                                            </a>
+                                            <a className='whitespace-nowrap overflow-hidden overflow-ellipsis w-[500px]' href={lead.place.websiteUri} target="_blank" rel="noopener noreferrer">
+                                                {lead.place.websiteUri}
+                                            </a>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className='w-full font-semibold text-xs' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
+                                )}
+                                <div className='flex space-x-6 pl-1 items-center text-xs'>
+                                    <div className='flex space-x-3 justify-center pl-1 items-center select-none'>
+                                        <p>Contacted Via:</p>
+                                        <p
+                                            className={`px-2 py-1 text-center ${
+                                                lead.contactedViaEmail ? 'border border-green-500 text-green-600 font-semibold' : 'bg-gray-100 border border-gray-100 custom-shadow hover:bg-gray-200'
+                                            } cursor-pointer`}
+                                            onClick={() => handleContactedViaClick(lead._id, 'contactedViaEmail')}
+                                        >
+                                            Email
+                                        </p>
+                                        <p
+                                            className={`px-2 py-1 text-center ${
+                                                lead.contactedViaDm ? 'border border-green-500 text-green-600 font-semibold' : 'bg-gray-100 border border-gray-100 custom-shadow hover:bg-gray-200'
+                                            } cursor-pointer`}
+                                            onClick={() => handleContactedViaClick(lead._id, 'contactedViaDm')}
+                                        >
+                                            DM
+                                        </p>
+                                        <p
+                                            className={`px-2 py-1 text-center ${
+                                                lead.contactedViaFb ? 'border border-green-500 text-green-600 font-semibold' : 'bg-gray-100 border border-gray-100 custom-shadow hover:bg-gray-200'
+                                            } cursor-pointer`}
+                                            onClick={() => handleContactedViaClick(lead._id, 'contactedViaFb')}
+                                        >
+                                            FB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='w-1/2 flex flex-col items-start text-xs space-y-2'>
+                                <div className='flex items-center justify-center space-x-1'>
+                                    <a href={lead.place.googleMapsUri} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img className='w-4 select-none' src='../static/images/google.svg' alt=''/>
+                                    </a>
+                                    <p className='text-xs'>{lead.place.formattedAddress}</p> 
+                                </div>
+                                {lead.place.internationalPhoneNumber ? (
+                                    <div className='flex space-x-2 justify-center pl-1 items-center'>
+                                        <img src='../static/images/phone.svg' className='w-4 select-none' alt=''/>
+                                        <p className='w-full rounded text-center'>{lead.place.internationalPhoneNumber}</p>
+                                    </div>
+                                ) : (
+                                    <p className='font-semibold pl-1' style={{ fontWeight: 'semibold', color: 'red' }}>No contact info</p>
+                                )}
+                                {lead.place.businessStatus !== 'OPERATIONAL' && (
+                                    <p className='' style={{ fontWeight: 'semibold', color: 'red' }}>{lead.place.businessStatus}</p>
+                                )}
+                                <div className='flex space-x-2 justify-center pl-1 items-center'>
+                                    {/* <img src='../static/images/phone.svg' className='w-4 select-none' alt=''/> */}
+                                    <p className='w-full rounded text-center font-semibold'>{lead.issue}</p>
+                                </div>
+                            </div>
+                            <div className='flex items-center'>
                                 <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
                                     <img onClick={() => handleDeleteClick(lead._id)} className='w-6 h-6' src='../static/images/trash.png' alt=''/>
                                 </div>
