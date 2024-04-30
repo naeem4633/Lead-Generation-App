@@ -44,15 +44,15 @@ const Leads = ({leads, setLeads, user}) => {
     
     const handleContactedViaClick = async (leadId, contactedVia) => {
         try {
-            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
-                [contactedVia]: !leads.find(lead => lead._id === leadId)[contactedVia]
-            });
             setLeads(prevLeads => prevLeads.map(lead => {
                 if (lead._id === leadId) {
                     return { ...lead, [contactedVia]: !lead[contactedVia] };
                 }
                 return lead;
             }));
+            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
+                [contactedVia]: !leads.find(lead => lead._id === leadId)[contactedVia]
+            });
             // console.log('Lead updated:', updatedLead.data);
         } catch (error) {
             console.error('Error updating lead:', error);
@@ -78,9 +78,9 @@ const Leads = ({leads, setLeads, user}) => {
                 <p className='font-bold text-sm tracking-wider'>LEADS</p>
             </div>
             <div className='flex flex-col w-full space-y-3 p-4'>
-                {isLoading && leads.length == 0 && (<Spinner/>)}
-                {!isLoading && leads.length == 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
-                {leads.map((lead, index) => (
+                {isLoading && leads.length === 0 && (<Spinner/>)}
+                {!isLoading && leads.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
+                {leads.length > 0 && leads.map((lead, index) => (
                     <div key={index} className='space-y-3'>
                         <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-white custom-shadow-1' key={lead._id}>
                             <div className='flex px-4 items-center'>

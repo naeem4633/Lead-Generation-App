@@ -84,12 +84,6 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
                 issue: 'Design'
             };
     
-            // Send POST request to create the lead
-            await axios.post(`${backendUrl}api/lead`, lead);
-    
-            // Update the place to set isLead to true
-            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
-    
             // Update the savedPlaces state to reflect the change
             const updatedSavedPlaces = savedPlaces.map(savedPlace => {
                 if (savedPlace._id === place._id) {
@@ -98,6 +92,12 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
                 return savedPlace;
             });
             setSavedPlaces(updatedSavedPlaces);
+
+            // Send POST request to create the lead
+            await axios.post(`${backendUrl}api/lead`, lead);
+    
+            // Update the place to set isLead to true
+            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
     
             // Handle response if necessary
             console.log('Lead with design issue created successfully');
@@ -187,7 +187,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
             <div className='flex flex-col w-full space-y-3 p-4'>
                 {isLoading && savedPlaces.length == 0 && (<Spinner/>)}
                 {!isLoading && savedPlaces.length == 0 && (<p className='w-full text-xs tracking-wider text-center'>No Places to display. Perform a search to save places.</p>)}
-                {savedPlaces.reverse().map((place, index) => (
+                {savedPlaces.map((place, index) => (
                     <div key={index} className={`space-y-3 ${place.isLead ? 'bg-green-100' : 'bg-white'}`}>
                         <div className='flex w-full custom-shadow-1 p-2 py-4' key={place.id}>
                             <div className='flex px-4 items-start'>

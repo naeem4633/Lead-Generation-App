@@ -35,21 +35,29 @@ const LandingPage = ({user, isMobile}) => {
                         </div>
                     </div>
                 </div>}
-        <div className='w-full h-screen flex p-2 tracking-wide space-x-1'>
+        <div className='w-full h-screen flex p-2 space-x-1  font-semibold tracking-wider'>
           <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
-              <Link to={'/home'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
-                  <p className='text-3xl tracking-wider'>NEW SEARCH</p>
-              </Link>
+            <Link to={'/home'} className='w-3/4 flex flex-col relative cursor-pointer hover:scale-95 transition-all duration-75 border-2 border-gray-200'>
+              <div className='flex w-full absolute inset-0 bg-black items-end justify-center opacity-50'></div>
+              <p className='absolute inset-0 flex items-center justify-center text-sm opacity-100'>NEW SEARCH</p>
+              <img className='w-full h-full' src='./static/images/search.png'></img>
+            </Link>
           </div>
+
           <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
-              <Link to={'/saved-places'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
-                  <p className='text-3xl tracking-wider'>SAVED PLACES</p>
-              </Link>
+            <Link to={'/saved-places'} className='w-3/4 flex flex-col relative cursor-pointer hover:scale-95 transition-all duration-75 border-2 border-gray-200'>
+              <div className='flex w-full absolute inset-0 bg-black items-end justify-center opacity-50'></div>
+              <p className='absolute inset-0 flex items-center justify-center text-sm opacity-100'>SAVED PLACES</p>
+              <img className='w-full h-full' src='./static/images/saved-places.png'></img>
+            </Link>
           </div>
+          
           <div className='w-1/2 flex justify-center items-center text-center text-xs text-gray-200 rounded'>
-              <Link to={'/leads'} className='rounded p-10 hover:scale-125 transition-all duration-500'>
-                  <p className='text-3xl tracking-wider'>LEADS</p>
-              </Link>
+            <Link to={'/leads'} className='w-3/4 flex flex-col relative cursor-pointer hover:scale-95 transition-all duration-75 border-2 border-gray-200'>
+              <div className='flex w-full absolute inset-0 bg-black items-end justify-center opacity-50'></div>
+              <p className='absolute inset-0 flex items-center justify-center text-sm opacity-100'>LEADS</p>
+              <img className='w-full h-full' src='./static/images/leads.png'></img>
+            </Link>
           </div>
         </div>
       </div>

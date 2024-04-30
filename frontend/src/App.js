@@ -83,8 +83,7 @@ function App() {
         });
 
         if (response.status === 200) {
-          const savedPlacesReversed = response.data.reverse()
-          setSavedPlaces(savedPlacesReversed);
+          setSavedPlaces(response.data);
         } else {
           console.error('Failed to fetch saved places');
         }
