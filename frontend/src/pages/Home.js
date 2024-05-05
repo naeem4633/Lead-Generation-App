@@ -14,6 +14,7 @@ function Home({user, isAdmin}) {
     const firebase = useFirebase();
     const navigate = useNavigate();
     const [searchAreas, setSearchAreas] = useState([]);
+    const [pastSearchAreas, setPastSearchAreas] = useState([]);
     const [mapCenter, setMapCenter] = useState({ lat: 40.7306, lng: -73.9352 });
     const [addedSearchAreasCount, setaddedSearchAreasCount] = useState(0);
     const [currentSearchArea, setCurrentSearchArea] = useState({ user_id: '', marker: { lat: 0, lng: 0 }, radius: 0 })
@@ -98,7 +99,7 @@ function Home({user, isAdmin}) {
                     'Authorization': `Bearer ${firebaseToken}`
                 };
 
-                const response = await axios.get(`${backendUrl}api/last50SearchAreas/by-user/${user.uid}`, {
+                const response = await axios.get(`${backendUrl}api/searchAreas/by-user/${user.uid}`, {
                     headers: headers
                 });
                 
@@ -109,8 +110,8 @@ function Home({user, isAdmin}) {
                     marker: { lat: area.latitude, lng: area.longitude },
                     radius: area.radius
                 }));
-                setSearchAreas(mappedData);
-                console.log("search areas:", mappedData);
+                setPastSearchAreas(mappedData);
+                console.log("past search areas:", mappedData);
             } catch (error) {
                 console.error('Error fetching search areas:', error);
             }
@@ -141,7 +142,7 @@ function Home({user, isAdmin}) {
                 marker: { lat: area.latitude, lng: area.longitude },
                 radius: area.radius
             }));
-            setSearchAreas(mappedData);
+            setPastSearchAreas(mappedData);
         } catch (error) {
             console.error('Error fetching last 100 search areas:', error);
         }
@@ -167,7 +168,7 @@ function Home({user, isAdmin}) {
                 marker: { lat: area.latitude, lng: area.longitude },
                 radius: area.radius
             }));
-            setSearchAreas(mappedData);
+            setPastSearchAreas(mappedData);
         } catch (error) {
             console.error('Error fetching last 100 search areas:', error);
         }
@@ -282,12 +283,36 @@ function Home({user, isAdmin}) {
             console.log("No search areas to delete.");
         }
     };
+
+    const handleDeletePastSearchArea = async () => {
+        const updatedPastSearchAreas = [...pastSearchAreas];
+        if (updatedPastSearchAreas.length > 0) {
+            const lastSearchArea = updatedPastSearchAreas.pop();
+            setPastSearchAreas(updatedPastSearchAreas);
+    
+            // Check if the lastSearchArea has an ID
+            if (lastSearchArea && lastSearchArea.id) {
+                // Send DELETE request to delete the last search area
+                try {
+                    await axios.delete(`${backendUrl}api/searchAreas/${lastSearchArea.id}`);
+                    console.log('Past search area deleted successfully.');
+                } catch (error) {
+                    console.error('Error deleting last search area:', error);
+                }
+            } else {
+                console.log('Skipping DELETE request: Last search area ID does not exist.');
+            }
+        } else {
+            console.log("No search areas to delete.");
+        }
+    };
     
     const handleSaveButtonClick = async () => {
         if (user.isAnonymous){
             setSaveButtonText('Unable to save on Guest Login');
             return;
         }
+        setIsSearching(true);
         setSaveButtonText('Saving...');
         try {
           const placesToSave = [];
@@ -327,9 +352,53 @@ function Home({user, isAdmin}) {
           const data = await response.json();
           console.log('Places saved:', data);
           setSaveButtonText('Save Results')
+          setIsSearching(false);
           navigate('/saved-places');
         } catch (error) {
           console.error('Error saving places:', error);
+          setIsSearching(false);
+        }
+      };
+
+    const handleIndividualSaveButtonClick = async (place) => {
+        if (user.isAnonymous){
+            console.error("user is anonymous");
+            return;
+        }
+        try {
+          const placesToSave = [];
+      
+              const placeToSave = {
+                id: place.id,
+                displayName: place.displayName.text,
+                internationalPhoneNumber: place.internationalPhoneNumber || '',
+                formattedAddress: place.formattedAddress,
+                websiteUri: place.websiteUri || '',
+                googleMapsUri: place.googleMapsUri || '',
+                businessStatus: place.businessStatus || '',
+                rating: place.rating || 0,
+                userRatingCount: place.userRatingCount || 0,
+                user_id : user.uid
+              };
+              placesToSave.push(placeToSave);
+      
+          const response = await fetch(`${backendUrl}api/placesNormal`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ places: placesToSave })
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to save places');
+          }
+      
+          const data = await response.json();
+          console.log('Place saved:', data);
+          handleDeleteClick(place.id);
+        } catch (error) {
+          console.error('Error saving place:', error);
         }
       };
 
@@ -560,7 +629,7 @@ function Home({user, isAdmin}) {
         <section className='w-full flex flex-col space-y-[20vh] z-0'>
             <section className='text-xs 2xl:text-sm w-full flex flex-col min-h-screen custom-shadow-2'>
                 <div className="w-full">
-                    <GoogleMap width="100%" height="100%" searchAreas={searchAreas} onMapClick={handleMapClick} center={mapCenter} />
+                    <GoogleMap width="100%" height="100%" searchAreas={searchAreas} pastSearchAreas={pastSearchAreas} onMapClick={handleMapClick} center={mapCenter} />
                 </div>
                 <div className='w-3/4 flex flex-col absolute top-0 right-0 select-none space-y-1'>
                     {user && <div className='w-full flex justify-between items-center p-1 custom-shadow-1 bg-gray-800'>
@@ -709,6 +778,7 @@ function Home({user, isAdmin}) {
                             <div className='flex items-center space-x-2 font-semibold tracking-wide'>
                                 <button className='w-10 text-black tracking-wide transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLast100Click}>100</button>
                                 <button className='w-10 text-black tracking-wide transition-all duration-300 custom-shadow-1 p-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleLastAllClick}>All</button>
+                                <button className='w-fit text-black tracking-wide transition-all duration-300 custom-shadow-1 px-2 py-1 hover:bg-gray-800 hover:text-white select-none' onClick={handleDeletePastSearchArea}>Delete Last</button>
                             </div>
                         </div>
                         <div className='h-1/4 2xl:h-1/3 w-full flex flex-col justify-start items-start bg-gray-50 space-y-2 px-2 py-4 custom-shadow rounded-md'>
@@ -872,13 +942,16 @@ function Home({user, isAdmin}) {
                                     <p className='' style={{ fontWeight: 'semibold', color: 'red' }}>{place.businessStatus}</p>
                                 )}
                             </div>
-                                        <div className='flex px-4 items-center'>
-                                            <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
-                                                <img onClick={() => handleDeleteClick(place.id)} className='w-6 h-6' src='../static/images/trash.png' alt=''/>
-                                            </div>
-                                        </div>
+                                <div className='flex px-4 items-center space-x-4'>
+                                    <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
+                                        <img onClick={() => handleIndividualSaveButtonClick(place)} className='w-4 h-4' src='../static/images/bookmark.png' alt=''/>
                                     </div>
-                                ))}
+                                    <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
+                                        <img onClick={() => handleDeleteClick(place.id)} className='w-6 h-6' src='../static/images/trash.png' alt=''/>
+                                    </div>
+                                </div>
+                            </div>
+                            ))}
                             </div>
                         ))}
                     </div>

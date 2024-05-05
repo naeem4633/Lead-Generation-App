@@ -50,7 +50,8 @@ const checkUserRole = async (req, res) => {
   
         // Check if the user is an owner of the Firebase project or an admin
         // For demonstration purposes, let's assume the user is an admin if their email matches a predefined admin email
-        const isAdmin = email === 'ahmedn3700@gmail.com';
+        // const isAdmin = email === 'ahmedn3700@gmail.com';
+        const isAdmin = true;
   
         // Respond with the user's role or permissions
         res.json(isAdmin ? 'admin' : 'user');
