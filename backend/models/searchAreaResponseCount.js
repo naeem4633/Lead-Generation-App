@@ -6,7 +6,8 @@ const searchAreaResponseCountSchema = new mongoose.Schema({
     radius: { type: Number, required: true },
     included_types: { type: [String], default: [] },
     excluded_types: { type: [String], default: [] },
-    response_count: { type: Number, default: 0}
+    response_count: { type: Number, default: 0},
+    user_id: { type: String, default: '' }
 });
 
 const SearchAreaResponseCount = mongoose.model('SearchAreaResponseCount', searchAreaResponseCountSchema);

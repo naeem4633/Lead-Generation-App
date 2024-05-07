@@ -10,7 +10,7 @@ import { supported_keyword_types } from '../supportedKeywordTypes';
 import {backendUrl} from '../backendUrl';
 import { useNavigate } from 'react-router-dom';
 
-function Home({user, isAdmin}) {
+function Home({user, isAdmin, notification, setNotification}) {
     const firebase = useFirebase();
     const navigate = useNavigate();
     const [searchAreas, setSearchAreas] = useState([]);
@@ -501,7 +501,14 @@ function Home({user, isAdmin}) {
     
             //send the search area response count objects back to the relevant path for storage
             try {
-                const searchAreaResponseCounts = nearbyPlacesResponse.data.searchAreaResponseCounts;
+                let searchAreaResponseCounts = nearbyPlacesResponse.data.searchAreaResponseCounts;
+                if (!user.isAnonymous) {
+                    // Append user_id to each object in searchAreaResponseCounts
+                    searchAreaResponseCounts = searchAreaResponseCounts.map(item => ({
+                      ...item,
+                      user_id: user.uid
+                    }));
+                  }
                 await axios.post(`${backendUrl}api/searchAreaResponseCounts`, searchAreaResponseCounts, {
                     headers: {
                         'Content-Type': 'application/json'

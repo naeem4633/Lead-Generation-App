@@ -19,6 +19,19 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const firebase = useFirebase();
+  const [notification, setNotification] = useState({
+    message: '',
+    visible: false
+});
+
+useEffect(() => {
+  if (notification.visible) {
+      const timer = setTimeout(() => {
+          setNotification({ message: '', visible: false });
+      }, 2000);
+      return () => clearTimeout(timer);
+  }
+}, [notification])
 
   useEffect(() => {
     const isScreenMobile = window.innerWidth <= 700;
@@ -143,9 +156,9 @@ function App() {
             <Route path="/" element={<LandingPage user={user} isMobile={isMobile}/>} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login user={user} isMobile={isMobile}/>} />
-            <Route path="/home" element={<Home user={user} isAdmin={isAdmin}/>} />
-            <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces}/>} />
-            <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads}/>} />
+            <Route path="/home" element={<Home user={user} isAdmin={isAdmin} notification={notification} setNotification={setNotification}/>} />
+            <Route path="/saved-places" element={<SavedPlaces user={user} savedPlaces={savedPlaces} setSavedPlaces={setSavedPlaces} notification={notification} setNotification={setNotification}/>} />
+            <Route path="/leads" element={<Leads user={user} leads={leads} setLeads={setLeads} notification={notification} setNotification={setNotification}/>} />
             <Route path="*" element={<ErrorPage/>} />
           </Routes>
         </div>

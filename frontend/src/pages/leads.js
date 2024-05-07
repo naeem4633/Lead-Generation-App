@@ -4,10 +4,67 @@ import { useFirebase } from '../context/firebase';
 import {backendUrl} from '../backendUrl';
 import Spinner from '../components/Spinner';
 
-const Leads = ({leads, setLeads, user}) => {
+const Leads = ({leads, setLeads, user, notification, setNotification}) => {
     let overallIndex = 0;
     const firebase = useFirebase();
     const [isLoading, setIsLoading] = useState(true);
+    const [editing, setEditing] = useState(false);
+    const [editStates, setEditStates] = useState({});
+    const [editedLinks, setEditedLinks] = useState({});
+
+    const handleEdit = (leadId) => {
+        setEditStates(prevStates => ({
+            ...prevStates,
+            [leadId]: true
+        }));
+    };
+
+    const handleCopyToClipboard = (link) => {
+        navigator.clipboard.writeText(link)
+            .then(() => {
+                console.log('Link copied to clipboard');
+                setNotification({ message: 'Link copied to clipboard', visible: true });
+            })
+            .catch(err => {
+                console.error('Failed to copy link: ', err);
+                setNotification({ message: 'Failed to copy link', visible: true });
+            });
+    };
+
+    const handleSave = async (leadId) => {
+        try {
+            // Update frontend state
+            const updatedLeads = leads.map(lead => {
+                if (lead._id === leadId) {
+                    return { 
+                        ...lead, 
+                        facebook_link: editedLinks[leadId]?.facebook || lead.facebook_link,
+                        instagram_link: editedLinks[leadId]?.instagram || lead.instagram_link,
+                        email_address: editedLinks[leadId]?.email || lead.email_address,
+                        figma_link: editedLinks[leadId]?.figma || lead.figma_link
+                    };
+                }
+                return lead;
+            });
+            setLeads(updatedLeads);
+            setEditStates(prevStates => ({
+                ...prevStates,
+                [leadId]: false
+            }));
+    
+            // Update backend
+            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
+                facebook_link: editedLinks[leadId]?.facebook || leads.find(lead => lead._id === leadId).facebook_link,
+                instagram_link: editedLinks[leadId]?.instagram || leads.find(lead => lead._id === leadId).instagram_link,
+                email_address: editedLinks[leadId]?.email || leads.find(lead => lead._id === leadId).email_address,
+                figma_link: editedLinks[leadId]?.figma || leads.find(lead => lead._id === leadId).figma_link
+            });
+            console.log('Lead updated:', updatedLead.data);
+        } catch (error) {
+            console.error('Error updating lead:', error);
+            setNotification({ message: 'Error Updating Lead', visible: true });
+        }
+    };
 
     // Simulating loading data
     useEffect(() => {
@@ -34,11 +91,14 @@ const Leads = ({leads, setLeads, user}) => {
                 const updatedLeads = leads.filter(lead => lead._id !== id);
                 setLeads(updatedLeads);
                 console.log(`Lead with ID ${id} deleted successfully`);
+                setNotification({ message: `Lead with ID ${id} deleted successfully`, visible: true });
             } else {
                 console.error('Failed to delete lead');
+                setNotification({ message: 'Failed to delete lead', visible: true });
             }
         } catch (error) {
             console.error('Error deleting lead:', error);
+            setNotification({ message: 'Failed to delete lead', visible: true });
         }
     };
     
@@ -56,11 +116,17 @@ const Leads = ({leads, setLeads, user}) => {
             // console.log('Lead updated:', updatedLead.data);
         } catch (error) {
             console.error('Error updating lead:', error);
+            setNotification({ message: 'Error Updating Lead', visible: true });
         }
     };
 
   return (
     <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
+        {notification.visible && (
+            <div className="absolute top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-1 text-xs transition-all duration-500 custom-shadow-1">
+                <p>{notification.message}</p>
+            </div>
+        )}
         {user && <div className='absolute top-0 right-0 p-1 custom-shadow-1 bg-gray-800'>
                     <div className='w-full rounded p-2'>
                         <div className='flex flex-row justify-end items-center space-x-4 text-white'>
@@ -111,8 +177,22 @@ const Leads = ({leads, setLeads, user}) => {
                                 ) : (
                                     <p className='w-full font-semibold text-xs' style={{ fontWeight: 'semibold', color: 'red' }}>No website</p>
                                 )}
+                                <div className='text-xs flex space-x-2 justify-center pl-1 items-center'>
+                                    <p className='w-full rounded text-center'>Issue: {lead.issue}</p>
+                                </div>
+                                <div className='flex space-x-1 items-center text-xs'>
+                                    <a href={lead.figma_link} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200 cursor-pointer'>
+                                        <img src='../static/images/figma.png' className='w-5' alt=''/>
+                                    </a>
+                                    <p className='w-full rounded whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[300px]'>{editStates[lead._id] ? <input className='p-1 border' value={editedLinks[lead._id]?.figma || lead.figma_link} onChange={(e) => setEditedLinks({...editedLinks, [lead._id]: {...(editedLinks[lead._id] || {}), figma: e.target.value}})} /> : lead.figma_link}</p>
+                                    <img 
+                                        src='../static/images/copy.png' 
+                                        className='w-4 cursor-pointer' 
+                                        alt='Copy' 
+                                        onClick={() => handleCopyToClipboard(lead.figma_link)}/>
+                                </div>
                                 <div className='flex space-x-6 pl-1 items-center text-xs'>
-                                    <div className='flex space-x-3 justify-center pl-1 items-center select-none'>
+                                    <div className='flex space-x-3 justify-center items-center select-none'>
                                         <p>Contacted Via:</p>
                                         <p
                                             className={`px-2 py-1 text-center ${
@@ -159,12 +239,32 @@ const Leads = ({leads, setLeads, user}) => {
                                 {lead.place.businessStatus !== 'OPERATIONAL' && (
                                     <p className='' style={{ fontWeight: 'semibold', color: 'red' }}>{lead.place.businessStatus}</p>
                                 )}
-                                <div className='flex space-x-2 justify-center pl-1 items-center'>
-                                    {/* <img src='../static/images/phone.svg' className='w-4 select-none' alt=''/> */}
-                                    <p className='w-full rounded text-center font-semibold'>{lead.issue}</p>
+                                <div className='flex space-x-1 items-center'>
+                                    <a href={`mailto:${lead.email_address}`} className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img src='../static/images/email.png' className='w-6' alt=''/>
+                                    </a>
+                                    <p className='w-full rounded text-center'>{editStates[lead._id] ? <input className='p-1 border' value={editedLinks[lead._id]?.email || lead.email_address} onChange={(e) => setEditedLinks({...editedLinks, [lead._id]: {...(editedLinks[lead._id] || {}), email: e.target.value}})} /> : lead.email_address}</p>
+                                </div>
+                                <div className='flex space-x-1 items-center'>
+                                    <a href={lead.facebook_link} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img src='../static/images/facebook.png' className='w-6' alt=''/>
+                                    </a>
+                                    <p className='w-full rounded whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[300px]'>{editStates[lead._id] ? <input className='p-1 border' value={editedLinks[lead._id]?.facebook || lead.facebook_link} onChange={(e) => setEditedLinks({...editedLinks, [lead._id]: {...(editedLinks[lead._id] || {}), facebook: e.target.value}})} /> : lead.facebook_link}</p>
+                                </div>
+                                <div className='flex space-x-1 items-center'>
+                                    <a href={lead.instagram_link} target="_blank" rel="noopener noreferrer" className='flex items-center justify-center p-1 rounded hover:bg-gray-200'>
+                                        <img src='../static/images/instagram.png' className='w-6' alt=''/>
+                                    </a>
+                                    <p className='w-full rounded whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[300px]'>{editStates[lead._id] ? <input className='p-1 border' value={editedLinks[lead._id]?.instagram || lead.instagram_link} onChange={(e) => setEditedLinks({...editedLinks, [lead._id]: {...(editedLinks[lead._id] || {}), instagram: e.target.value}})} /> : lead.instagram_link}</p>
                                 </div>
                             </div>
-                            <div className='flex items-center'>
+                            <div className='flex items-center space-x-1'>
+                                {editStates[lead._id] && <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
+                                                <img onClick={() => handleSave(lead._id)} src='../static/images/check.png' className='w-5 select-none' alt='Save'/>
+                                            </div>}
+                                {!editStates[lead._id] && <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
+                                                <img onClick={() => handleEdit(lead._id)} src='../static/images/editing.png' className='w-5 select-none' alt='Edit'/>
+                                            </div>}
                                 <div className='flex items-center justify-center hover:bg-gray-200 rounded p-1 cursor-pointer select-none'>
                                     <img onClick={() => handleDeleteClick(lead._id)} className='w-6 h-6' src='../static/images/trash.png' alt=''/>
                                 </div>
