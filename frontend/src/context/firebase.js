@@ -1,7 +1,7 @@
     import { createContext, useContext } from 'react';
     import { initializeApp } from 'firebase/app';
     import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithCredential, EmailAuthProvider, linkWithPopup } from 'firebase/auth';
-    import { getDatabase, set, ref } from 'firebase/database';
+    import { getDatabase, set, ref, update, remove } from 'firebase/database';
     import bcrypt from 'bcryptjs';
 
     const firebaseConfig = {
@@ -151,8 +151,23 @@
 
         const putData = (key, data) => set(ref(database, key), data);
 
+        const putLeadData = (leadId, leadData) => {
+            return set(ref(database, `leads/${leadId}`), leadData);
+          };
+        
+        const updateLeadData = (leadId, leadData) => {
+        return update(ref(database, `leads/${leadId}`), leadData);
+        };
+
+        const deleteLead = (leadId) => {
+        return remove(ref(database, `leads/${leadId}`));
+        };
+
     return (
-        <FirebaseContext.Provider value={{signupUserWithEmailAndPassword, signinWithGoogle,  signinUser, signInAnonymous, convertAnonymousToPermanentEmailPassword, convertAnonymousToPermanentGoogle, getAuth, getCurrentUser }}>
+        <FirebaseContext.Provider value={{signupUserWithEmailAndPassword, signinWithGoogle,  signinUser, signInAnonymous, convertAnonymousToPermanentEmailPassword, convertAnonymousToPermanentGoogle, getAuth, getCurrentUser,
+            putLeadData,
+            updateLeadData, 
+            deleteLead}}>
           {props.children}
         </FirebaseContext.Provider>
     );

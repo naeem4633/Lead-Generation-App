@@ -10,6 +10,7 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
     let overallIndex = 0;
     const navigate = useNavigate();
     const firebase = useFirebase();
+    const {putLeadData} = useFirebase()
     const [checkedItems, setCheckedItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -74,71 +75,85 @@ const SavedPlaces = ({savedPlaces, setSavedPlaces, user}) => {
         }
     };
 
-    // Function to handle creating a new lead with a design issue
-    const handleDesignIssueClick = async (place) => {
-        try {
-            // Create a new lead object with the issue set to "Design"
-            const lead = {
-                place: place._id,
-                user_id: user.uid,
-                issue: 'Design'
-            };
-    
-            // Update the savedPlaces state to reflect the change
-            const updatedSavedPlaces = savedPlaces.map(savedPlace => {
-                if (savedPlace._id === place._id) {
-                    return { ...savedPlace, isLead: true };
-                }
-                return savedPlace;
-            });
-            setSavedPlaces(updatedSavedPlaces);
+// Function to handle creating a new lead with a design issue
+const handleDesignIssueClick = async (place) => {
+    try {
+        // Create a new lead object with the issue set to "Design"
+        const lead = {
+            place: place._id,
+            user_id: user.uid,
+            issue: 'Design'
+        };
 
-            // Send POST request to create the lead
-            await axios.post(`${backendUrl}api/lead`, lead);
-    
-            // Update the place to set isLead to true
-            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
-    
-            // Handle response if necessary
-            console.log('Lead with design issue created successfully');
-            // navigate('/leads');
-        } catch (error) {
-            console.error('Error creating lead with design issue:', error);
-        }
-    };
-    
-    // Function to handle creating a new lead with a SEO issue
-    const handleSeoIssueClick = async (place) => {
-        try {
-            // Create a new lead object with the issue set to "SEO"
-            const lead = {
-                place: place._id,
-                user_id: user.uid,
-                issue: 'SEO'
-            };
-    
-            // Send POST request to create the lead
-            await axios.post(`${backendUrl}api/lead`, lead);
-    
-            // Update the place to set isLead to true
-            await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
-    
-            // Update the savedPlaces state to reflect the change
-            const updatedSavedPlaces = savedPlaces.map(savedPlace => {
-                if (savedPlace._id === place._id) {
-                    return { ...savedPlace, isLead: true };
-                }
-                return savedPlace;
-            });
-            setSavedPlaces(updatedSavedPlaces);
-    
-            // Handle response if necessary
-            console.log('Lead with SEO issue created successfully');
-            // navigate('/leads');
-        } catch (error) {
-            console.error('Error creating lead with SEO issue:', error);
-        }
-    };
+        // Update the savedPlaces state to reflect the change
+        const updatedSavedPlaces = savedPlaces.map(savedPlace => {
+            if (savedPlace._id === place._id) {
+                return { ...savedPlace, isLead: true };
+            }
+            return savedPlace;
+        });
+        setSavedPlaces(updatedSavedPlaces);
+
+        // Send POST request to create the lead
+        const response = await axios.post(`${backendUrl}api/lead`, lead);
+
+        // Add the lead ID from the response to the lead object
+        const leadId = response.data._id;
+        const leadWithId = { ...lead, _id: leadId };
+
+        // Save to Firebase
+        await putLeadData(leadId, leadWithId);
+
+        // Update the place to set isLead to true
+        await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
+
+        // Handle response if necessary
+        console.log('Lead with design issue created successfully');
+        // navigate('/leads');
+    } catch (error) {
+        console.error('Error creating lead with design issue:', error);
+    }
+};
+
+// Function to handle creating a new lead with a SEO issue
+const handleSeoIssueClick = async (place) => {
+    try {
+        // Create a new lead object with the issue set to "SEO"
+        const lead = {
+            place: place._id,
+            user_id: user.uid,
+            issue: 'SEO'
+        };
+
+        // Send POST request to create the lead
+        const response = await axios.post(`${backendUrl}api/lead`, lead);
+
+        // Add the lead ID from the response to the lead object
+        const leadId = response.data._id;
+        const leadWithId = { ...lead, _id: leadId };
+
+        // Save to Firebase
+        await putLeadData(leadId, leadWithId);
+
+        // Update the place to set isLead to true
+        await axios.put(`${backendUrl}api/places/${place.id}`, { isLead: true });
+
+        // Update the savedPlaces state to reflect the change
+        const updatedSavedPlaces = savedPlaces.map(savedPlace => {
+            if (savedPlace._id === place._id) {
+                return { ...savedPlace, isLead: true };
+            }
+            return savedPlace;
+        });
+        setSavedPlaces(updatedSavedPlaces);
+
+        // Handle response if necessary
+        console.log('Lead with SEO issue created successfully');
+        // navigate('/leads');
+    } catch (error) {
+        console.error('Error creating lead with SEO issue:', error);
+    }
+};
     
     
     const handleLogoutClick = async () => {

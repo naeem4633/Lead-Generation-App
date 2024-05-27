@@ -8,6 +8,7 @@ const leadSchema = new mongoose.Schema({
     instagram_link: { type: String, required: false, default: 'N/A' },
     email_address: { type: String, required: false, default: 'N/A' },
     figma_link: { type: String, required: false, default: 'N/A' },
+    contacted: { type: Boolean, default: false },
     contactedViaEmail: { type: Boolean, default: false },
     contactedViaDm: { type: Boolean, default: false },
     contactedViaFb: { type: Boolean, default: false },

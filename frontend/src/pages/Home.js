@@ -492,10 +492,10 @@ function Home({user, isAdmin, notification, setNotification}) {
                 }
             );
     
-            console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas));
-            console.log("nearbyplacesresponse : " , nearbyPlacesResponse);
-            console.log("nearbyplacesresponse length: " , nearbyPlacesResponse.data.nearbyPlaces.length);
-            console.log("searcharearesponse counts length: " , nearbyPlacesResponse.data.searchAreaResponseCounts.length);
+            // console.log("recent search areas sent in req: " + JSON.stringify(recentSearchAreas));
+            // console.log("nearbyplacesresponse : " , nearbyPlacesResponse);
+            // console.log("nearbyplacesresponse length: " , nearbyPlacesResponse.data.nearbyPlaces.length);
+            // console.log("searcharearesponse counts length: " , nearbyPlacesResponse.data.searchAreaResponseCounts.length);
             setaddedSearchAreasCount(0);
             setPlacesResponse([...placesResponse, ...nearbyPlacesResponse.data.nearbyPlaces]);
     
@@ -521,7 +521,7 @@ function Home({user, isAdmin, notification, setNotification}) {
         } catch (error) {
             console.error('Error sending search areas:', error);
         } finally {
-            setIsSearching(false); // Set isSearching to false after the request is completed (whether successful or not)
+            setIsSearching(false); 
             smoothScrollTo(0, window.innerHeight * 1.25, 800);
         }
     };

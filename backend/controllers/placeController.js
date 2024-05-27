@@ -70,27 +70,35 @@ const createPlace = async (req, res) => {
 // Create multiple places
 const createMultiplePlaces = async (req, res) => {
   try {
-      const { places } = req.body;
-      const createdPlaces = [];
+    const { places } = req.body;
+    const createdPlaces = [];
 
-      for (const placeData of places) {
-          const { id, user_id } = placeData;
-          
-          // Check if a place with the same ID and user ID already exists
-          const existingPlace = await Place.findOne({ id, user_id });
-          if (existingPlace) {
-              return res.status(400).json({ error: 'Place already exists' });
-          }
+    for (const placeData of places) {
+      const { id, user_id } = placeData;
 
-          // Create a new place
-          const createdPlace = await Place.create(placeData);
-          createdPlaces.push(createdPlace);
+      try {
+        // Check if a place with the same ID and user ID already exists
+        const existingPlace = await Place.findOne({ id, user_id });
+        if (existingPlace) {
+          // Skip this place and continue to the next iteration
+          console.log(`Place with ID ${id} already exists. Skipping.`);
+          continue;
+        }
+
+        // Create a new place
+        const createdPlace = await Place.create(placeData);
+        createdPlaces.push(createdPlace);
+      } catch (error) {
+        // Log the error and continue to the next iteration
+        console.error(`Error creating place with ID ${id}:`, error);
+        continue;
       }
+    }
 
-      res.json({ places: createdPlaces });
+    res.json({ places: createdPlaces });
   } catch (error) {
-      console.error('Error creating places:', error);
-      res.status(500).json({ error: 'Error creating places' });
+    console.error('Error creating places:', error);
+    res.status(500).json({ error: 'Error creating places' });
   }
 };
 

@@ -11,6 +11,7 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
     const [editing, setEditing] = useState(false);
     const [editStates, setEditStates] = useState({});
     const [editedLinks, setEditedLinks] = useState({});
+    const { updateLeadData, deleteLead } = useFirebase();
 
     const handleEdit = (leadId) => {
         setEditStates(prevStates => ({
@@ -52,19 +53,27 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                 [leadId]: false
             }));
     
-            // Update backend
-            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
+            const leadData = {
                 facebook_link: editedLinks[leadId]?.facebook || leads.find(lead => lead._id === leadId).facebook_link,
                 instagram_link: editedLinks[leadId]?.instagram || leads.find(lead => lead._id === leadId).instagram_link,
                 email_address: editedLinks[leadId]?.email || leads.find(lead => lead._id === leadId).email_address,
                 figma_link: editedLinks[leadId]?.figma || leads.find(lead => lead._id === leadId).figma_link
-            });
+            };
+    
+            // Update backend
+            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, leadData);
             console.log('Lead updated:', updatedLead.data);
+    
+            // Update Firebase
+            await updateLeadData(leadId, leadData);
+            console.log('Lead updated in Firebase');
+    
         } catch (error) {
             console.error('Error updating lead:', error);
             setNotification({ message: 'Error Updating Lead', visible: true });
         }
     };
+    
 
     // Simulating loading data
     useEffect(() => {
@@ -92,6 +101,10 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                 setLeads(updatedLeads);
                 console.log(`Lead with ID ${id} deleted successfully`);
                 setNotification({ message: `Lead with ID ${id} deleted successfully`, visible: true });
+    
+                // Delete from Firebase
+                await deleteLead(id);
+                console.log(`Lead with ID ${id} deleted from Firebase`);
             } else {
                 console.error('Failed to delete lead');
                 setNotification({ message: 'Failed to delete lead', visible: true });
@@ -102,28 +115,39 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
         }
     };
     
+    
     const handleContactedViaClick = async (leadId, contactedVia) => {
         try {
-            setLeads(prevLeads => prevLeads.map(lead => {
+            const updatedLeads = leads.map(lead => {
                 if (lead._id === leadId) {
                     return { ...lead, [contactedVia]: !lead[contactedVia] };
                 }
                 return lead;
-            }));
-            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, {
-                [contactedVia]: !leads.find(lead => lead._id === leadId)[contactedVia]
             });
-            // console.log('Lead updated:', updatedLead.data);
+            setLeads(updatedLeads);
+    
+            const leadData = {
+                [contactedVia]: !leads.find(lead => lead._id === leadId)[contactedVia]
+            };
+    
+            // Update backend
+            const updatedLead = await axios.put(`${backendUrl}api/leads/${leadId}`, leadData);
+            console.log('Lead updated:', updatedLead.data);
+    
+            // Update Firebase
+            await updateLeadData(leadId, leadData);
+            console.log('Lead updated in Firebase');
         } catch (error) {
             console.error('Error updating lead:', error);
             setNotification({ message: 'Error Updating Lead', visible: true });
         }
     };
+    
 
   return (
     <section className='w-full min-h-screen bg-gray-100 py-10 tracking-wide'>
         {notification.visible && (
-            <div className="absolute top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-1 text-xs transition-all duration-500 custom-shadow-1">
+            <div className="w-fit sticky top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-1 text-xs transition-all duration-500 custom-shadow-1">
                 <p>{notification.message}</p>
             </div>
         )}
@@ -148,7 +172,7 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                 {!isLoading && leads.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
                 {leads.length > 0 && leads.map((lead, index) => (
                     <div key={index} className='space-y-3'>
-                        <div className='flex w-full p-2 border border-gray-400 border-x-0 border-t-0 bg-white custom-shadow-1' key={lead._id}>
+                        <div className={`flex w-full p-2 border border-gray-400 bg-white border-x-0 border-t-0 custom-shadow-1`} key={lead._id}>
                             <div className='flex px-4 items-center'>
                                 <p>{overallIndex += 1}</p>
                             </div>
@@ -187,7 +211,7 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                                     <p className='w-full rounded whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[300px]'>{editStates[lead._id] ? <input className='p-1 border' value={editedLinks[lead._id]?.figma || lead.figma_link} onChange={(e) => setEditedLinks({...editedLinks, [lead._id]: {...(editedLinks[lead._id] || {}), figma: e.target.value}})} /> : lead.figma_link}</p>
                                     <img 
                                         src='../static/images/copy.png' 
-                                        className='w-4 cursor-pointer' 
+                                        className='w-5 cursor-pointer bg-white p-1 custom-shadow hover:bg-gray-100' 
                                         alt='Copy' 
                                         onClick={() => handleCopyToClipboard(lead.figma_link)}/>
                                 </div>

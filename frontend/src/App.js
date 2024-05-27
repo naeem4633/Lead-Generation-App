@@ -73,9 +73,6 @@ useEffect(() => {
   }, [firebase]);
   
 
-
-
-
   useEffect(() => {
     const fetchSavedPlaces = async () => {
       if (!user) {
