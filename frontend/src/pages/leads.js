@@ -172,6 +172,7 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                 {!isLoading && leads.length === 0 && (<p className='w-full text-sm tracking-wider text-center'>No Leads to display. Select some places to convert them to leads.</p>)}
                 {leads.length > 0 && leads.map((lead, index) => (
                     <div key={index} className='space-y-3'>
+                        {lead.place ? (
                         <div className={`flex w-full p-2 border border-gray-400 bg-white border-x-0 border-t-0 custom-shadow-1`} key={lead._id}>
                             <div className='flex px-4 items-center'>
                                 <p>{overallIndex += 1}</p>
@@ -294,6 +295,12 @@ const Leads = ({leads, setLeads, user, notification, setNotification}) => {
                                 </div>
                             </div>
                         </div>
+                        ): (
+                            <div className='border border-black p-2 flex items-center space-x-2 text-sm'>
+                                <p>This lead does not have any place information.</p>
+                                <p className='underline text-red-600 cursor-pointer' onClick={() => handleDeleteClick(lead._id)}>Delete</p>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
